@@ -1,6 +1,6 @@
 # Grapher
 
-This thing will be online here: https://akuli.github.io/grapher/
+This thing is online here: https://akuli.github.io/grapher/
 
 
 ## Development Setup
