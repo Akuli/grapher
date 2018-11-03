@@ -129,25 +129,36 @@ define([], function() {
         }
         return { type: 'var', name: varName };
       }
+
       if (this.iter.comingUp({ type: 'constant' })) {
         const token = this.iter.nextToken({ type: 'constant' });
         return { type: 'number', value: CONSTANTS[token.value] };
       }
+
       if (this.iter.comingUp({ type: 'function' })) {
         // this assumes that all functions take exactly 1 argument
+        // i tried to make this work without () but parseExpression() always
+        // wanted to parse as much as possible, so sqrtxsqrty was parsed as
+        // sqrt(x*sqrt(y)), and because x was treated same as (x),
+        // sqrt(x)*sqrt(y) was also parsed as sqrt(x*sqrt(y))
         const functionToken = this.iter.nextToken({ type: 'function' });
+        this.iter.nextToken({ type: 'operator', value: '(' });
         const arg = this.parseExpression();
+        this.iter.nextToken({ type: 'operator', value: ')' });
         return { type: 'functionCall', functionName: functionToken.value, arg: arg };
       }
+
       if (this.iter.comingUp({ type: 'operator', value: '(' })) {
         this.iter.nextToken({ type: 'operator', value: '(' });
         const result = this.parseExpression();
         this.iter.nextToken({ type: 'operator', value: ')' });
         return result;
       }
+
       if (this.iter.comingUp({ type: 'number' })) {
         return { type: 'number', value: +this.iter.nextToken({ type: 'number' }).value };
       }
+
       throw new Error("don't know how to parse " + this.iter.nextToken({}).value);
     }
 

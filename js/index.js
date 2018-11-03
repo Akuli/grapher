@@ -2,20 +2,35 @@
   "use strict";
 
   document.addEventListener('DOMContentLoaded', () => {
-    const graphCanvas = document.getElementById('graph-canvas');
+    require(['js/graph-drawer.js', 'js/math-parser.js'], (GraphDrawer, mathParser) => {
+      const graphCanvas = document.getElementById('graph-canvas');
+      const mathInput = document.getElementById('math-input');
+      const drawButton = document.getElementById('draw-button');
 
-    function drawGraph() {
-      console.log("drawing graph");
-    }
+      const drawer = new GraphDrawer(graphCanvas);
 
-    const mathInput = document.getElementById('math-input');
-    const drawButton = document.getElementById('draw-button');
+      function drawGraph() {
+        let mathAst;
+        try {
+          mathAst = mathParser.parse(mathInput.value, ['x']);
+        } catch (error) {
+          console.log(error);
+          mathInput.classList.add('invalidMath');
+          return;
+        }
 
-    mathInput.addEventListener('keydown', event => {
-      if (event.key == 'Enter') {
-        drawGraph();
+        mathInput.classList.remove('invalidMath');
+        drawer.draw(xValue => mathParser.evaluate(mathAst, { x: xValue }));
       }
+
+      mathInput.addEventListener('keydown', event => {
+        if (event.key == 'Enter') {
+          drawGraph();
+        }
+      });
+      drawButton.addEventListener('click', () => drawGraph());
+
+      drawGraph();
     });
-    drawButton.addEventListener('click', () => drawGraph());
   });
 }());
