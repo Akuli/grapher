@@ -13,23 +13,16 @@
         let mathAst;
         try {
           mathAst = mathParser.parse(mathInput.value, ['x']);
+          mathInput.classList.remove('invalidMath');
         } catch (error) {
-          console.log(error);
+          //console.log(error);
           mathInput.classList.add('invalidMath');
-          return;
+          mathAst = mathParser.parse("sqrt(-1)");
         }
-
-        mathInput.classList.remove('invalidMath');
         drawer.draw(xValue => mathParser.evaluate(mathAst, { x: xValue }));
       }
 
-      mathInput.addEventListener('keydown', event => {
-        if (event.key == 'Enter') {
-          drawGraph();
-        }
-      });
-      drawButton.addEventListener('click', () => drawGraph());
-
+      mathInput.addEventListener('input', () => drawGraph());
       drawGraph();
     });
   });
