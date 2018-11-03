@@ -1,4 +1,11 @@
+# Grapher
+
+This thing will be online here: https://akuli.github.io/grapher/
+
+
 ## Development Setup
+
+Clone the repository and open index.html in your browser. It should work.
 
 Even though this project runs entirely in a browser, you can lint it with nodejs
 and eslint. Install a new enough nodejs, and run this command in this repository
