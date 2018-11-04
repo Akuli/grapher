@@ -1,3 +1,11 @@
-.invalidMath {
+.invalid-math {
     background-color: #ff6666;
+}
+
+.entry-area {
+    margin-left: 3em;
+}
+
+input.narrow {
+    width: 4em;
 }

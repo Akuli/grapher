@@ -1,3 +1,5 @@
+// TODO: incontinuity of y=arctan(1/x) screws things up
+
 define([], function() {
   "use strict";
 
@@ -115,23 +117,22 @@ define([], function() {
       }
     }
 
-    draw(f) {
+    draw(tToXy, tMin, tMax) {
       this._drawBoilerplate();
 
-      const stepSize = (this.mathXMax - this.mathXMin) / NSTEPS;
-      let prevPoint = null;
+      const stepSize = (tMax - tMin) / NSTEPS;
+      let prevPoint = [ NaN, NaN ];
       this._ctx.strokeStyle = 'blue';
 
-      for (let x = this.mathXMin; x < this.mathXMax; x += stepSize) {
-        const point = [ this.xMathToScreen(x), this.yMathToScreen(f(x)) ];
-        if (prevPoint !== null) {
-          if (point[0] !== NaN && point[1] !== NaN &&
-              prevPoint[0] !== NaN && prevPoint[1] !== NaN) {
-            this._ctx.beginPath();
-            this._ctx.moveTo(...prevPoint);
-            this._ctx.lineTo(...point);
-            this._ctx.stroke();
-          }
+      for (let t = tMin; t < tMax; t += stepSize) {
+        let [ x, y ] = tToXy(t);
+        const point = [ this.xMathToScreen(x), this.yMathToScreen(y) ];
+        if (point[0] !== NaN && point[1] !== NaN &&
+            prevPoint[0] !== NaN && prevPoint[1] !== NaN) {
+          this._ctx.beginPath();
+          this._ctx.moveTo(...prevPoint);
+          this._ctx.lineTo(...point);
+          this._ctx.stroke();
         }
         prevPoint = point;
       }

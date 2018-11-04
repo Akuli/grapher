@@ -4,7 +4,19 @@ define([], function() {
   const FUNCTIONS = {
     sqrt: Math.sqrt,
     abs: Math.abs,
-    cbrt: Math.cbrt
+    cbrt: Math.cbrt,
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan,
+    sec: (x => 1/Math.cos(x)),
+    csc: (x => 1/Math.sin(x)),
+    cot: (x => Math.cos(x)/Math.sin(x)),
+    arcsin: Math.asin,
+    arccos: Math.acos,
+    arctan: Math.atan,
+    arcsec: (x => Math.acos(1/x)),
+    arccsc: (x => Math.asin(1/x)),
+    arccot: (x => Math.atan(1/x))
   };
 
   const CONSTANTS = {
@@ -36,6 +48,7 @@ define([], function() {
             yield { type: spec.name, value: string };
           }
           matched = true;
+          break;
         }
       }
 
@@ -118,6 +131,7 @@ define([], function() {
         this.iter.comingUp({ type: 'var' }) ||
         this.iter.comingUp({ type: 'function' }) ||
         this.iter.comingUp({ type: 'operator', value: '(' }) ||
+        this.iter.comingUp({ type: 'constant' }) ||
         this.iter.comingUp({ type: 'number' }));
     }
 
