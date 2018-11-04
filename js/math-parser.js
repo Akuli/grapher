@@ -32,7 +32,7 @@ define([], function() {
     { name: 'number', regex: /^[0-9]+/ },
     { name: 'function', regex: createKeyRegex(FUNCTIONS) },
     { name: 'constant', regex: createKeyRegex(CONSTANTS) },
-    { name: 'var', regex: /^\w/ },
+    { name: 'var', regex: /^(theta|\w)/ },
     { name: 'operator', regex: /^[+\-*/^|()]/ },
     { name: 'space', regex: /^\s+/ }
   ];

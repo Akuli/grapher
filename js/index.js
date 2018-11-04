@@ -7,12 +7,14 @@
 
       const functionRadio = document.getElementById('function-radio');
       const parametricRadio = document.getElementById('parametric-radio');
+      const polarRadio = document.getElementById('polar-radio');
 
       const yOfXInput = document.getElementById('function');
       const xOfTInput = document.getElementById('parametric-x');
       const yOfTInput = document.getElementById('parametric-y');
       const tMinInput = document.getElementById('parametric-t-min');
       const tMaxInput = document.getElementById('parametric-t-max');
+      const rOfThetaInput = document.getElementById('polar-r');
 
       const drawer = new GraphDrawer(graphCanvas);
 
@@ -50,6 +52,12 @@
           drawer.draw(t => [ mathParser.evaluate(xAst, { t: t }),
                              mathParser.evaluate(yAst, { t: t }) ],
                       tMin, tMax);
+        } else if (polarRadio.checked) {
+          const rAst = textInputToMathAst(rOfThetaInput, ['theta']);
+          drawer.draw(function(t) {
+            const r = mathParser.evaluate(rAst, { theta: t });
+            return [ r * Math.cos(t), r * Math.sin(t) ];
+          }, 0, 2*Math.PI);
         } else {
           throw new Error("radio inputs are in a weird state");
         }
@@ -57,7 +65,8 @@
 
       const radiosAndTextInputs = [
         [ functionRadio, [ yOfXInput ] ],
-        [ parametricRadio, [ xOfTInput, yOfTInput, tMinInput, tMaxInput ] ]
+        [ parametricRadio, [ xOfTInput, yOfTInput, tMinInput, tMaxInput ] ],
+        [ polarRadio, [ rOfThetaInput ] ]
       ];
 
       for (let [ radio, textInputs ] of radiosAndTextInputs) {
