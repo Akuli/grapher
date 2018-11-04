@@ -4,17 +4,91 @@
   document.addEventListener('DOMContentLoaded', () => {
     require(['js/graph-drawer.js', 'js/math-parser.js'], (GraphDrawer, mathParser) => {
       const graphCanvas = document.getElementById('graph-canvas');
+      const form = document.getElementById('graph-form');
 
-      const functionRadio = document.getElementById('function-radio');
-      const parametricRadio = document.getElementById('parametric-radio');
-      const polarRadio = document.getElementById('polar-radio');
+      function createTextInput(defaultValue) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = defaultValue;
+        return input;
+      }
 
-      const yOfXInput = document.getElementById('function');
-      const xOfTInput = document.getElementById('parametric-x');
-      const yOfTInput = document.getElementById('parametric-y');
-      const tMinInput = document.getElementById('parametric-t-min');
-      const tMaxInput = document.getElementById('parametric-t-max');
-      const rOfThetaInput = document.getElementById('polar-r');
+      const yOfXInput = createTextInput("x^2");
+      const xOfTInput = createTextInput("cos(t)");
+      const yOfTInput = createTextInput("sin(t)");
+      const tMinInput = createTextInput("0");
+      const tMaxInput = createTextInput("2pi");
+      const rOfThetaInput = createTextInput("theta");
+
+      tMinInput.classList.add('narrow');
+      tMaxInput.classList.add('narrow');
+
+      function addSection(text, divFiller) {
+        const radio = document.createElement('input');
+        radio.id = "random-input-id-" + Math.random();
+        radio.type = 'radio';
+        radio.name = 'graph-type';
+        radio.checked = true;
+        form.appendChild(radio);
+
+        const label = document.createElement('label');
+        label.htmlFor = radio.id;
+        label.appendChild(document.createTextNode(text));
+        form.appendChild(label);
+
+        // TODO: do this better?
+        form.appendChild(document.createElement('br'));
+
+        const div = document.createElement('div');
+        div.classList.add('entry-area');
+        divFiller(div);
+        form.appendChild(div);
+
+        return radio;
+      }
+
+      const functionRadio = addSection("Function graph", div => {
+        div.appendChild(document.createTextNode("y = "));
+        div.appendChild(yOfXInput);
+      });
+
+      const parametricRadio = addSection("Parametric plot", div => {
+        div.appendChild(document.createTextNode("x(t) = "));
+        div.appendChild(xOfTInput);
+        div.appendChild(document.createElement('br'));
+        div.appendChild(document.createTextNode("y(t) = "));
+        div.appendChild(yOfTInput);
+        div.appendChild(document.createElement('br'));
+        div.appendChild(tMinInput);
+        div.appendChild(document.createTextNode(" \u2264 t \u2264 "));
+        div.appendChild(tMaxInput);
+      });
+
+      const polarRadio = addSection("Polar", div => {
+        div.appendChild(document.createTextNode("r(\u03B8) = "));
+        div.appendChild(rOfThetaInput);
+      });
+
+      const radiosAndTextInputs = [
+        [ functionRadio, [ yOfXInput ] ],
+        [ parametricRadio, [ xOfTInput, yOfTInput, tMinInput, tMaxInput ] ],
+        [ polarRadio, [ rOfThetaInput ] ]
+      ];
+
+      function updateDisableds() {
+        for (const [ radio, textInputs ] of radiosAndTextInputs) {
+          for (const input of textInputs) {
+            input.disabled = !radio.checked;
+          }
+        }
+      }
+
+      for (const [ radio, textInputs ] of radiosAndTextInputs) {
+        radio.addEventListener('change', updateDisableds);
+      }
+
+      functionRadio.checked = true;
+      updateDisableds();
 
       const drawer = new GraphDrawer(graphCanvas);
 
@@ -64,24 +138,10 @@
         }
       }
 
-      const radiosAndTextInputs = [
-        [ functionRadio, [ yOfXInput ] ],
-        [ parametricRadio, [ xOfTInput, yOfTInput, tMinInput, tMaxInput ] ],
-        [ polarRadio, [ rOfThetaInput ] ]
-      ];
-
       for (const [ radio, textInputs ] of radiosAndTextInputs) {
-        radio.addEventListener('change', () => {
-          for (const [ radio, textInputs ] of radiosAndTextInputs) {
-            for (const input of textInputs) {
-              input.disabled = !radio.checked;
-            }
-          }
-          drawGraph();
-        });
-
+        radio.addEventListener('change', drawGraph);
         for (const input of textInputs) {
-          input.addEventListener('input', () => drawGraph());
+          input.addEventListener('input', drawGraph);
         }
       }
 

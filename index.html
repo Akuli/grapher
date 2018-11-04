@@ -10,36 +10,6 @@
     <canvas width="500" height="400" id="graph-canvas"></canvas>
     <br />
 
-    <form id="graph-form">
-        <input type="radio" id="function-radio" name="graph-type" checked>
-        <label for="function-radio">Function graph</label>
-        <br />
-
-        <div class="entry-area">
-            y = <input id="function" value="x^2" />
-        </div>
-
-        <input type="radio" id="parametric-radio" name="graph-type">
-        <label for="parametric-radio">Parametric plot</label>
-        <br />
-
-        <div class="entry-area">
-            x(t) = <input id="parametric-x" value="cos(t)" disabled />
-            <br />
-            y(t) = <input id="parametric-y" value="sin(t)" disabled />
-            <br />
-            <input id="parametric-t-min" class="narrow" value="0" disabled />
-            &le; t &le;
-            <input id="parametric-t-max" class="narrow" value="2pi" disabled />
-        </div>
-
-        <input type="radio" id="polar-radio" name="graph-type">
-        <label for="polar-radio">Polar</label>
-        <br />
-
-        <div class="entry-area">
-            r(&theta;) = <input id="polar-r" value="theta" disabled />
-        </div>
-    </form>
+    <form id="graph-form"></form>
 </body>
 </html>
