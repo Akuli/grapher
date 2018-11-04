@@ -8,6 +8,55 @@ define([], function() {
   const ARROW_SIZE = 8;
   const TICK_SIZE = 4;
 
+  class Point {
+    constructor(graphDrawer, x, y, mathOrScreen) {
+      this._drawer = graphDrawer;
+
+      if (mathOrScreen === 'math') {
+        this.mathX = x;
+        this.mathY = y;
+      } else if (mathOrScreen === 'screen') {
+        this.mathX = x / this._xScale + graphDrawer.mathXMin;
+        this.mathY = (graphDrawer.screenHeight - y) / this._yScale + graphDrawer.mathYMin;
+      } else {
+        throw new Error("expected 'math' or 'screen', got " + mathOrScreen)
+      }
+
+      // the points can represent things outside what is shown on the screen
+      // but not things like Infinity
+      if (!( isFinite(this.mathX) && isFinite(this.mathY) )) {
+        this.mathX = NaN;
+        this.mathY = NaN;
+      }
+    }
+
+    get _xScale() {
+      return this._drawer.screenWidth / (this._drawer.mathXMax - this._drawer.mathXMin);
+    }
+
+    get _yScale() {
+      return this._drawer.screenHeight / (this._drawer.mathYMax - this._drawer.mathYMin);
+    }
+
+    get screenX() {
+      const result = (this.mathX - this._drawer.mathXMin)*this._xScale;
+      return (0 <= result && result <= this._drawer.screenWidth) ? result : NaN;
+    }
+
+    get screenY() {
+      const result = this._drawer.screenHeight - (this.mathY - this._drawer.mathYMin)*this._xScale;
+      return (0 <= result && result <= this._drawer.screenWidth) ? result : NaN;
+    }
+
+    mathDistance(that) {
+      return Math.hypot(this.mathX - that.mathX, this.mathY - that.mathY);
+    }
+
+    screenDistance(that) {
+      return Math.hypot(this.screenX - that.screenX, this.screenY - that.screenY);
+    }
+  }
+
   class GraphDrawer {
     constructor(canvas) {
       this._canvas = canvas;
@@ -18,77 +67,72 @@ define([], function() {
       this.mathYMax = canvas.height / DEFAULT_PIXELS_PER_MATH_UNIT / 2;
     }
 
-    // exercise for you: figure out how these work
-    xMathToScreen(mathX) {
-      if (!isFinite(mathX)) {
-        return NaN;
-      }
-
-      const scaleFactor = this._canvas.width / (this.mathXMax - this.mathXMin);
-      const result = (mathX - this.mathXMin) * scaleFactor;
-      return (0 <= result && result <= this._canvas.width) ? result : NaN;
+    get screenWidth() {
+      return this._canvas.width;
     }
-    yMathToScreen(mathY) {
-      if (!isFinite(mathY)) {
-        return NaN;
-      }
 
-      const scaleFactor = this._canvas.height / (this.mathYMax - this.mathYMin);
-      const result = this._canvas.height - (mathY - this.mathYMin) * scaleFactor;
-      return (0 <= result && result <= this._canvas.height) ? result : NaN;
+    get screenHeight() {
+      return this._canvas.height;
+    }
+
+    mathPoint(mathX, mathY) {
+      return new Point(this, mathX, mathY, 'math');
+    }
+
+    screenPoint(screenX, screenY) {
+      return new Point(this, screenX, screenY, 'screen');
     }
 
     // clears everything, draws axises and grid
     _drawBoilerplate() {
-      this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+      this._ctx.clearRect(0, 0, this.screenWidth, this.screenHeight);
 
-      const originX = this.xMathToScreen(0);
-      const originY = this.yMathToScreen(0);
+      const origin = this.mathPoint(0, 0);
 
       // x axis
       this._ctx.strokeStyle = 'black';
-      if (originY !== NaN) {
+      if (origin.screenY !== NaN) {
         this._ctx.beginPath();
-        this._ctx.moveTo(0, originY);
-        this._ctx.lineTo(this._canvas.width, originY);
-        this._ctx.lineTo(this._canvas.width-ARROW_SIZE, originY-ARROW_SIZE);
-        this._ctx.moveTo(this._canvas.width, originY);
-        this._ctx.lineTo(this._canvas.width-ARROW_SIZE, originY+ARROW_SIZE);
+        this._ctx.moveTo(0, origin.screenY);
+        this._ctx.lineTo(this.screenWidth, origin.screenY);
+        this._ctx.lineTo(this.screenWidth-ARROW_SIZE, origin.screenY-ARROW_SIZE);
+        this._ctx.moveTo(this.screenWidth, origin.screenY);
+        this._ctx.lineTo(this.screenWidth-ARROW_SIZE, origin.screenY+ARROW_SIZE);
         this._ctx.stroke();
 
         // things have +0.5 everywhere to avoid getting numbers near the ends
         this._ctx.textBaseline = 'top';
         for (let x = Math.ceil(this.mathXMin + 0.5); x+0.5 < this.mathXMax; x++) {
           if (x !== 0) {
-            const screenX = this.xMathToScreen(x);
+            const screenX = this.mathPoint(x, 0).screenX;
             this._ctx.beginPath();
-            this._ctx.moveTo(screenX, originY-TICK_SIZE);
-            this._ctx.lineTo(screenX, originY+TICK_SIZE);
+            this._ctx.moveTo(screenX, origin.screenY-TICK_SIZE);
+            this._ctx.lineTo(screenX, origin.screenY+TICK_SIZE);
             this._ctx.stroke();
-            this._ctx.fillText(''+x, screenX, originY+TICK_SIZE)
+            this._ctx.fillText(''+x, screenX, origin.screenY+TICK_SIZE)
           }
         }
       }
 
       // y axis
-      if (originX !== NaN) {
+      if (origin.screenX !== NaN) {
         this._ctx.beginPath();
-        this._ctx.moveTo(originX, this._canvas.height);
-        this._ctx.lineTo(originX, 0);
-        this._ctx.lineTo(originX-ARROW_SIZE, ARROW_SIZE);
-        this._ctx.moveTo(originX, 0);
-        this._ctx.lineTo(originX+ARROW_SIZE, ARROW_SIZE);
+        this._ctx.moveTo(origin.screenX, this.screenHeight);
+        this._ctx.lineTo(origin.screenX, 0);
+        this._ctx.lineTo(origin.screenX-ARROW_SIZE, ARROW_SIZE);
+        this._ctx.moveTo(origin.screenX, 0);
+        this._ctx.lineTo(origin.screenX+ARROW_SIZE, ARROW_SIZE);
         this._ctx.stroke();
 
         this._ctx.textBaseline = 'alphabetic';
         for (let y = Math.ceil(this.mathYMin + 0.5); y+0.5 < this.mathYMax; y++) {
           if (y !== 0) {
-            const screenY = this.yMathToScreen(y);
+            const screenY = this.mathPoint(0, y).screenY;
             this._ctx.beginPath();
-            this._ctx.moveTo(originX-TICK_SIZE, screenY);
-            this._ctx.lineTo(originX+TICK_SIZE, screenY);
+            this._ctx.moveTo(origin.screenX-TICK_SIZE, screenY);
+            this._ctx.lineTo(origin.screenX+TICK_SIZE, screenY);
             this._ctx.stroke();
-            this._ctx.fillText(''+y, originX+TICK_SIZE, screenY)
+            this._ctx.fillText(''+y, origin.screenX+TICK_SIZE, screenY)
           }
         }
       }
@@ -97,10 +141,10 @@ define([], function() {
       this._ctx.strokeStyle = '#999';
       for (let y = Math.ceil(this.mathYMin); y < this.mathYMax; y++) {
         if (y !== 0) {
-          const screenY = this.yMathToScreen(y);
+          const screenY = this.mathPoint(0, y).screenY;
           this._ctx.beginPath();
           this._ctx.moveTo(0, screenY);
-          this._ctx.lineTo(this._canvas.width, screenY);
+          this._ctx.lineTo(this.screenWidth, screenY);
           this._ctx.stroke();
         }
       }
@@ -108,10 +152,10 @@ define([], function() {
       // vertical grid lines
       for (let x = Math.ceil(this.mathXMin); x < this.mathXMax; x++) {
         if (x !== 0) {
-          const screenX = this.xMathToScreen(x);
+          const screenX = this.mathPoint(x, 0).screenX;
           this._ctx.beginPath();
           this._ctx.moveTo(screenX, 0);
-          this._ctx.lineTo(screenX, this._canvas.height);
+          this._ctx.lineTo(screenX, this.screenHeight);
           this._ctx.stroke();
         }
       }
@@ -121,17 +165,16 @@ define([], function() {
       this._drawBoilerplate();
 
       const stepSize = (tMax - tMin) / NSTEPS;
-      let prevPoint = [ NaN, NaN ];
+      let prevPoint = this.mathPoint(NaN, NaN);
       this._ctx.strokeStyle = 'blue';
 
       for (let t = tMin; t < tMax; t += stepSize) {
-        let [ x, y ] = tToXy(t);
-        const point = [ this.xMathToScreen(x), this.yMathToScreen(y) ];
-        if (point[0] !== NaN && point[1] !== NaN &&
-            prevPoint[0] !== NaN && prevPoint[1] !== NaN) {
+        const point = tToXy(t);
+        if (point.screenX !== NaN && point.screenY !== NaN &&
+            prevPoint.screenX !== NaN && prevPoint.screenY !== NaN) {
           this._ctx.beginPath();
-          this._ctx.moveTo(...prevPoint);
-          this._ctx.lineTo(...point);
+          this._ctx.moveTo(prevPoint.screenX, prevPoint.screenY);
+          this._ctx.lineTo(point.screenX, point.screenY);
           this._ctx.stroke();
         }
         prevPoint = point;

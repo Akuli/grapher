@@ -32,7 +32,7 @@
       function drawGraph() {
         if (functionRadio.checked) {
           const yAst = textInputToMathAst(yOfXInput, ['x']);
-          drawer.draw(t => [ t, mathParser.evaluate(yAst, { x: t }) ],
+          drawer.draw(t => drawer.mathPoint(t, mathParser.evaluate(yAst, { x: t })),
                       drawer.mathXMin, drawer.mathXMax);
         } else if (parametricRadio.checked) {
           const xAst = textInputToMathAst(xOfTInput, ['t']);
@@ -49,14 +49,14 @@
             xAst = yAst = mathParser.parse("sqrt(-1)", []);
           }
 
-          drawer.draw(t => [ mathParser.evaluate(xAst, { t: t }),
-                             mathParser.evaluate(yAst, { t: t }) ],
+          drawer.draw(t => drawer.mathPoint(mathParser.evaluate(xAst, { t: t }),
+                                            mathParser.evaluate(yAst, { t: t })),
                       tMin, tMax);
         } else if (polarRadio.checked) {
           const rAst = textInputToMathAst(rOfThetaInput, ['theta']);
           drawer.draw(function(t) {
             const r = mathParser.evaluate(rAst, { theta: t });
-            return [ r * Math.cos(t), r * Math.sin(t) ];
+            return drawer.mathPoint(r * Math.cos(t), r * Math.sin(t));
           }, 0, 2*Math.PI);
         } else {
           throw new Error("radio inputs are in a weird state");
