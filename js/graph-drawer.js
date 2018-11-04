@@ -19,7 +19,7 @@ define([], function() {
         this.mathX = x / this._xScale + graphDrawer.mathXMin;
         this.mathY = (graphDrawer.screenHeight - y) / this._yScale + graphDrawer.mathYMin;
       } else {
-        throw new Error("expected 'math' or 'screen', got " + mathOrScreen)
+        throw new Error("expected 'math' or 'screen', got " + mathOrScreen);
       }
 
       // the points can represent things outside what is shown on the screen
@@ -91,7 +91,7 @@ define([], function() {
 
       // x axis
       this._ctx.strokeStyle = 'black';
-      if (origin.screenY !== NaN) {
+      if (!isNaN(origin.screenY)) {
         this._ctx.beginPath();
         this._ctx.moveTo(0, origin.screenY);
         this._ctx.lineTo(this.screenWidth, origin.screenY);
@@ -109,13 +109,13 @@ define([], function() {
             this._ctx.moveTo(screenX, origin.screenY-TICK_SIZE);
             this._ctx.lineTo(screenX, origin.screenY+TICK_SIZE);
             this._ctx.stroke();
-            this._ctx.fillText(''+x, screenX, origin.screenY+TICK_SIZE)
+            this._ctx.fillText(''+x, screenX, origin.screenY+TICK_SIZE);
           }
         }
       }
 
       // y axis
-      if (origin.screenX !== NaN) {
+      if (!isNaN(origin.screenX)) {
         this._ctx.beginPath();
         this._ctx.moveTo(origin.screenX, this.screenHeight);
         this._ctx.lineTo(origin.screenX, 0);
@@ -132,7 +132,7 @@ define([], function() {
             this._ctx.moveTo(origin.screenX-TICK_SIZE, screenY);
             this._ctx.lineTo(origin.screenX+TICK_SIZE, screenY);
             this._ctx.stroke();
-            this._ctx.fillText(''+y, origin.screenX+TICK_SIZE, screenY)
+            this._ctx.fillText(''+y, origin.screenX+TICK_SIZE, screenY);
           }
         }
       }
@@ -170,8 +170,10 @@ define([], function() {
 
       for (let t = tMin; t < tMax; t += stepSize) {
         const point = tToXy(t);
-        if (point.screenX !== NaN && point.screenY !== NaN &&
-            prevPoint.screenX !== NaN && prevPoint.screenY !== NaN) {
+        if (!(isNaN(point.screenX) ||
+              isNaN(point.screenY) ||
+              isNaN(prevPoint.screenX) ||
+              isNaN(prevPoint.screenY))) {
           this._ctx.beginPath();
           this._ctx.moveTo(prevPoint.screenX, prevPoint.screenY);
           this._ctx.lineTo(point.screenX, point.screenY);

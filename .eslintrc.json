@@ -25,6 +25,8 @@
             "error",
             "always"
         ],
-        "strict": "error"
+        "strict": "error",
+        "no-console": "off",
+        "prefer-const": "error"
     }
 }

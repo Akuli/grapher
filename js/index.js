@@ -32,26 +32,27 @@
       function drawGraph() {
         if (functionRadio.checked) {
           const yAst = textInputToMathAst(yOfXInput, ['x']);
-          drawer.draw(t => drawer.mathPoint(t, mathParser.evaluate(yAst, { x: t })),
-                      drawer.mathXMin, drawer.mathXMax);
+          drawer.draw(
+            t => drawer.mathPoint(t, mathParser.evaluate(yAst, { x: t })),
+            drawer.mathXMin, drawer.mathXMax);
         } else if (parametricRadio.checked) {
-          const xAst = textInputToMathAst(xOfTInput, ['t']);
-          const yAst = textInputToMathAst(yOfTInput, ['t']);
+          let xAst = textInputToMathAst(xOfTInput, ['t']);
+          let yAst = textInputToMathAst(yOfTInput, ['t']);
 
           // tminmax inputs can contain stuff like sqrt(2)
           let tMin = mathParser.evaluate(textInputToMathAst(tMinInput, []), {});
           let tMax = mathParser.evaluate(textInputToMathAst(tMaxInput, []), {});
 
-          if (tMin === NaN || tMax === NaN || tMin > tMax) {
+          if (isNaN(tMin) || isNaN(tMax) || tMin > tMax) {
             // draw nothing
             tMin = 1;
             tMax = 1;
             xAst = yAst = mathParser.parse("sqrt(-1)", []);
           }
 
-          drawer.draw(t => drawer.mathPoint(mathParser.evaluate(xAst, { t: t }),
-                                            mathParser.evaluate(yAst, { t: t })),
-                      tMin, tMax);
+          drawer.draw(
+            t => drawer.mathPoint(mathParser.evaluate(xAst, { t: t }), mathParser.evaluate(yAst, { t: t })),
+            tMin, tMax);
         } else if (polarRadio.checked) {
           const rAst = textInputToMathAst(rOfThetaInput, ['theta']);
           drawer.draw(function(t) {
@@ -69,17 +70,17 @@
         [ polarRadio, [ rOfThetaInput ] ]
       ];
 
-      for (let [ radio, textInputs ] of radiosAndTextInputs) {
+      for (const [ radio, textInputs ] of radiosAndTextInputs) {
         radio.addEventListener('change', () => {
-          for (let [ radio, textInputs ] of radiosAndTextInputs) {
-            for (let input of textInputs) {
+          for (const [ radio, textInputs ] of radiosAndTextInputs) {
+            for (const input of textInputs) {
               input.disabled = !radio.checked;
             }
           }
           drawGraph();
         });
 
-        for (let input of textInputs) {
+        for (const input of textInputs) {
           input.addEventListener('input', () => drawGraph());
         }
       }

@@ -40,7 +40,7 @@ define([], function() {
   function* tokenizeExpression(mathString) {
     while (mathString !== "") {
       let matched = false;
-      for (let spec of TOKEN_SPEC) {
+      for (const spec of TOKEN_SPEC) {
         if (spec.regex.test(mathString)) {
           const string = spec.regex.exec(mathString)[0];
           mathString = mathString.slice(string.length);
@@ -59,7 +59,7 @@ define([], function() {
   }
 
   function tokenMatches(token, props) {
-    for (let key of Object.getOwnPropertyNames(props)) {
+    for (const key of Object.getOwnPropertyNames(props)) {
       if (token[key] !== props[key]) {
         return false;
       }
@@ -177,7 +177,7 @@ define([], function() {
     }
 
     binaryOperatorComingUp() {
-      for (let binaryOperator of '+-*/^') {
+      for (const binaryOperator of '+-*/^') {
         if (this.iter.comingUp({ type: 'operator', value: binaryOperator })) {
           return true;
         }
@@ -216,9 +216,9 @@ define([], function() {
       }
 
       // replace operators with binaryOp ast nodes
-      for (let operators of ['^', '*/', '+-']) {
-        let indexes = [];
-        for (let op of operators) {
+      for (const operators of ['^', '*/', '+-']) {
+        const indexes = [];
+        for (const op of operators) {
           funnyStuff.forEach((stringOrAst, index) => {
             if (stringOrAst === op) {
               indexes.push(index);
