@@ -161,7 +161,7 @@ define([], function() {
       }
     }
 
-    draw(tToXy, tMin, tMax) {
+    draw(tToPoint, tMin, tMax) {
       this._drawBoilerplate();
 
       const stepSize = (tMax - tMin) / NSTEPS;
@@ -169,7 +169,7 @@ define([], function() {
       this._ctx.strokeStyle = 'blue';
 
       for (let t = tMin; t < tMax; t += stepSize) {
-        const point = tToXy(t);
+        const point = tToPoint(t);
         if (!(isNaN(point.screenX) ||
               isNaN(point.screenY) ||
               isNaN(prevPoint.screenX) ||
