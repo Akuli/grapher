@@ -2,9 +2,18 @@
   "use strict";
 
   document.addEventListener('DOMContentLoaded', () => {
-    require(['js/graph-drawer.js', 'js/math-parser.js'], (GraphDrawer, mathParser) => {
-      const graphCanvas = document.getElementById('graph-canvas');
-      const form = document.getElementById('graph-form');
+    require(
+        ['js/graph-drawer.js', 'js/math-parser.js', 'js/color-generator.js'],
+        (GraphDrawer, mathParser, generateColor) => {
+      const drawer = new GraphDrawer(document.getElementById('graph-canvas'));
+      const drawCallbacks = [];
+
+      function drawEverything() {
+        drawer.initDrawing();
+        for (let cb of drawCallbacks) {
+          cb();
+        }
+      }
 
       function createTextInput(defaultValue) {
         const input = document.createElement('input');
@@ -13,17 +22,7 @@
         return input;
       }
 
-      const yOfXInput = createTextInput("x^2");
-      const xOfTInput = createTextInput("cos(t)");
-      const yOfTInput = createTextInput("sin(t)");
-      const tMinInput = createTextInput("0");
-      const tMaxInput = createTextInput("2pi");
-      const rOfThetaInput = createTextInput("theta");
-
-      tMinInput.classList.add('narrow');
-      tMaxInput.classList.add('narrow');
-
-      function addSection(text, divFiller) {
+      function addSection(form, text, divFiller) {
         const radio = document.createElement('input');
         radio.id = "random-input-id-" + Math.random();
         radio.type = 'radio';
@@ -47,51 +46,6 @@
         return radio;
       }
 
-      const functionRadio = addSection("Function graph", div => {
-        div.appendChild(document.createTextNode("y = "));
-        div.appendChild(yOfXInput);
-      });
-
-      const parametricRadio = addSection("Parametric plot", div => {
-        div.appendChild(document.createTextNode("x(t) = "));
-        div.appendChild(xOfTInput);
-        div.appendChild(document.createElement('br'));
-        div.appendChild(document.createTextNode("y(t) = "));
-        div.appendChild(yOfTInput);
-        div.appendChild(document.createElement('br'));
-        div.appendChild(tMinInput);
-        div.appendChild(document.createTextNode(" \u2264 t \u2264 "));
-        div.appendChild(tMaxInput);
-      });
-
-      const polarRadio = addSection("Polar", div => {
-        div.appendChild(document.createTextNode("r(\u03B8) = "));
-        div.appendChild(rOfThetaInput);
-      });
-
-      const radiosAndTextInputs = [
-        [ functionRadio, [ yOfXInput ] ],
-        [ parametricRadio, [ xOfTInput, yOfTInput, tMinInput, tMaxInput ] ],
-        [ polarRadio, [ rOfThetaInput ] ]
-      ];
-
-      function updateDisableds() {
-        for (const [ radio, textInputs ] of radiosAndTextInputs) {
-          for (const input of textInputs) {
-            input.disabled = !radio.checked;
-          }
-        }
-      }
-
-      for (const [ radio, textInputs ] of radiosAndTextInputs) {
-        radio.addEventListener('change', updateDisableds);
-      }
-
-      functionRadio.checked = true;
-      updateDisableds();
-
-      const drawer = new GraphDrawer(graphCanvas);
-
       function textInputToMathAst(input, varNames) {
         input.classList.remove('invalid-math');
         try {
@@ -103,49 +57,140 @@
         }
       }
 
-      function drawGraph() {
-        if (functionRadio.checked) {
-          const yAst = textInputToMathAst(yOfXInput, ['x']);
-          drawer.draw(
-            t => drawer.mathPoint(t, mathParser.evaluate(yAst, { x: t })),
-            drawer.mathXMin, drawer.mathXMax);
-        } else if (parametricRadio.checked) {
-          let xAst = textInputToMathAst(xOfTInput, ['t']);
-          let yAst = textInputToMathAst(yOfTInput, ['t']);
+      let nextGraphNumber = 1;
 
-          // tminmax inputs can contain stuff like sqrt(2)
-          let tMin = mathParser.evaluate(textInputToMathAst(tMinInput, []), {});
-          let tMax = mathParser.evaluate(textInputToMathAst(tMaxInput, []), {});
+      function addGraph() {
+        const form = document.createElement('form');
+        form.classList.add('graph-settings');
+        document.getElementById('graph-settings').appendChild(form);
 
-          if (isNaN(tMin) || isNaN(tMax) || tMin > tMax) {
-            // draw nothing
-            tMin = 1;
-            tMax = 1;
-            xAst = yAst = mathParser.parse("sqrt(-1)", []);
+        const title = document.createElement('h4');
+        title.classList.add('graph-title');
+        title.textContent = "Graph " + (nextGraphNumber++);
+
+        const colorInput = document.createElement('input');
+        colorInput.classList.add('graph-color');
+        colorInput.type = 'color';
+        colorInput.value = generateColor();
+        colorInput.addEventListener('input', drawEverything);
+
+        const removeButton = document.createElement('button');
+        removeButton.textContent = "\u2716";
+        removeButton.classList.add('remove-graph');
+
+        form.appendChild(title);
+        form.appendChild(colorInput);
+        form.appendChild(removeButton);
+        form.appendChild(document.createElement('br'));
+
+        const yOfXInput = createTextInput("x^2");
+        const xOfTInput = createTextInput("cos(t)");
+        const yOfTInput = createTextInput("sin(t)");
+        const tMinInput = createTextInput("0");
+        const tMaxInput = createTextInput("2pi");
+        const rOfThetaInput = createTextInput("theta");
+
+        tMinInput.classList.add('narrow');
+        tMaxInput.classList.add('narrow');
+
+        const functionRadio = addSection(form, "Function graph", div => {
+          div.appendChild(document.createTextNode("y = "));
+          div.appendChild(yOfXInput);
+        });
+
+        const parametricRadio = addSection(form, "Parametric plot", div => {
+          div.appendChild(document.createTextNode("x(t) = "));
+          div.appendChild(xOfTInput);
+          div.appendChild(document.createElement('br'));
+          div.appendChild(document.createTextNode("y(t) = "));
+          div.appendChild(yOfTInput);
+          div.appendChild(document.createElement('br'));
+          div.appendChild(tMinInput);
+          div.appendChild(document.createTextNode(" \u2264 t \u2264 "));
+          div.appendChild(tMaxInput);
+        });
+
+        const polarRadio = addSection(form, "Polar", div => {
+          div.appendChild(document.createTextNode("r(\u03B8) = "));
+          div.appendChild(rOfThetaInput);
+        });
+
+        const radiosAndTextInputs = [
+          [ functionRadio, [ yOfXInput ] ],
+          [ parametricRadio, [ xOfTInput, yOfTInput, tMinInput, tMaxInput ] ],
+          [ polarRadio, [ rOfThetaInput ] ]
+        ];
+
+        function updateDisableds() {
+          for (const [ radio, textInputs ] of radiosAndTextInputs) {
+            for (const input of textInputs) {
+              input.disabled = !radio.checked;
+            }
           }
-
-          drawer.draw(
-            t => drawer.mathPoint(mathParser.evaluate(xAst, { t: t }), mathParser.evaluate(yAst, { t: t })),
-            tMin, tMax);
-        } else if (polarRadio.checked) {
-          const rAst = textInputToMathAst(rOfThetaInput, ['theta']);
-          drawer.draw(function(t) {
-            const r = mathParser.evaluate(rAst, { theta: t });
-            return drawer.mathPoint(r * Math.cos(t), r * Math.sin(t));
-          }, 0, 2*Math.PI);
-        } else {
-          throw new Error("radio inputs are in a weird state");
         }
+
+        for (const [ radio, textInputs ] of radiosAndTextInputs) {
+          radio.addEventListener('change', updateDisableds);
+        }
+
+        functionRadio.checked = true;
+        updateDisableds();
+
+        for (const [ radio, textInputs ] of radiosAndTextInputs) {
+          radio.addEventListener('change', drawEverything);
+          for (const input of textInputs) {
+            input.addEventListener('input', drawEverything);
+          }
+        }
+
+        const drawCallback = () => {
+          drawer.drawingColor = colorInput.value;
+
+          if (functionRadio.checked) {
+            const yAst = textInputToMathAst(yOfXInput, ['x']);
+            drawer.drawParametric(
+              t => drawer.mathPoint(t, mathParser.evaluate(yAst, { x: t })),
+              drawer.mathXMin, drawer.mathXMax);
+          } else if (parametricRadio.checked) {
+            let xAst = textInputToMathAst(xOfTInput, ['t']);
+            let yAst = textInputToMathAst(yOfTInput, ['t']);
+
+            // tminmax inputs can contain stuff like sqrt(2)
+            let tMin = mathParser.evaluate(textInputToMathAst(tMinInput, []), {});
+            let tMax = mathParser.evaluate(textInputToMathAst(tMaxInput, []), {});
+
+            if (isNaN(tMin) || isNaN(tMax) || tMin > tMax) {
+              // draw nothing
+              tMin = 1;
+              tMax = 1;
+              xAst = yAst = mathParser.parse("sqrt(-1)", []);
+            }
+
+            drawer.drawParametric(
+              t => drawer.mathPoint(mathParser.evaluate(xAst, { t: t }), mathParser.evaluate(yAst, { t: t })),
+              tMin, tMax);
+          } else if (polarRadio.checked) {
+            const rAst = textInputToMathAst(rOfThetaInput, ['theta']);
+            drawer.drawParametric(function(t) {
+              const r = mathParser.evaluate(rAst, { theta: t });
+              return drawer.mathPoint(r * Math.cos(t), r * Math.sin(t));
+            }, 0, 2*Math.PI);
+          } else {
+            throw new Error("radio inputs are in a weird state");
+          }
+        };
+
+        drawCallbacks.push(drawCallback);
+        drawEverything();
+
+        removeButton.addEventListener('click', () => {
+          drawCallbacks.splice(drawCallbacks.indexOf(drawCallback), 1);
+          form.parentNode.removeChild(form);
+        });
       }
 
-      for (const [ radio, textInputs ] of radiosAndTextInputs) {
-        radio.addEventListener('change', drawGraph);
-        for (const input of textInputs) {
-          input.addEventListener('input', drawGraph);
-        }
-      }
-
-      drawGraph();
+      document.getElementById('add-graph-button').addEventListener('click', addGraph);
+      addGraph();
     });
   });
 }());

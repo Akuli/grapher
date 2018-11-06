@@ -1,11 +1,36 @@
-.invalid-math {
+input.invalid-math {
     background-color: #ff6666;
 }
 
-.entry-area {
+div.entry-area {
     margin-left: 3em;
 }
 
 input.narrow {
     width: 4em;
+}
+
+form.graph-settings {
+    float: left;
+    margin: 2px;
+    border: 1px solid;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+h4.graph-title {
+    display: inline-block;
+}
+
+input.graph-color {
+    margin-left: 1em;
+}
+
+button.remove-graph {
+    margin-left: 1em;
+    float: right;
+}
+
+#add-graph-button {
+    margin: 10px;
 }

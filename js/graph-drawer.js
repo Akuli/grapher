@@ -65,6 +65,7 @@ define([], function() {
       this.mathXMax = canvas.width / DEFAULT_PIXELS_PER_MATH_UNIT / 2;
       this.mathYMin = -(canvas.height / DEFAULT_PIXELS_PER_MATH_UNIT / 2);
       this.mathYMax = canvas.height / DEFAULT_PIXELS_PER_MATH_UNIT / 2;
+      this.drawingColor = null;
     }
 
     get screenWidth() {
@@ -84,7 +85,7 @@ define([], function() {
     }
 
     // clears everything, draws axises and grid
-    _drawBoilerplate() {
+    initDrawing() {
       this._ctx.clearRect(0, 0, this.screenWidth, this.screenHeight);
 
       const origin = this.mathPoint(0, 0);
@@ -161,12 +162,14 @@ define([], function() {
       }
     }
 
-    draw(tToPoint, tMin, tMax) {
-      this._drawBoilerplate();
+    drawParametric(tToPoint, tMin, tMax) {
+      if (this.drawingColor === null) {
+        throw new Error("drawingColor wasn't set");
+      }
 
       const stepSize = (tMax - tMin) / NSTEPS;
       let prevPoint = this.mathPoint(NaN, NaN);
-      this._ctx.strokeStyle = 'blue';
+      this._ctx.strokeStyle = this.drawingColor;
 
       for (let t = tMin; t < tMax; t += stepSize) {
         const point = tToPoint(t);
