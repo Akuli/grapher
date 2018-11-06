@@ -2,15 +2,17 @@
   "use strict";
 
   document.addEventListener('DOMContentLoaded', () => {
-    require(
-        ['js/graph-drawer.js', 'js/math-parser.js', 'js/color-generator.js'],
-        (GraphDrawer, mathParser, generateColor) => {
+    /* eslint-disable indent */
+    require([
+      'js/graph-drawer.js', 'js/math-parser.js', 'js/color-generator.js'],
+      (GraphDrawer, mathParser, generateColor) => {
+    /* eslint-enable indent */
       const drawer = new GraphDrawer(document.getElementById('graph-canvas'));
       const drawCallbacks = [];
 
       function drawEverything() {
         drawer.initDrawing();
-        for (let cb of drawCallbacks) {
+        for (const cb of drawCallbacks) {
           cb();
         }
       }
@@ -129,6 +131,7 @@
           }
         }
 
+        // eslint-disable-next-line no-unused-vars
         for (const [ radio, textInputs ] of radiosAndTextInputs) {
           radio.addEventListener('change', updateDisableds);
         }
