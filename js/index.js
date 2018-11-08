@@ -131,9 +131,17 @@
           }
         }
 
-        // eslint-disable-next-line no-unused-vars
         for (const [ radio, textInputs ] of radiosAndTextInputs) {
           radio.addEventListener('change', updateDisableds);
+
+          // without this, pressing enter closes the graph
+          for (const input of textInputs) {
+            input.addEventListener('keypress', event => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+              }
+            });
+          }
         }
 
         functionRadio.checked = true;
