@@ -189,6 +189,7 @@
         removeButton.addEventListener('click', () => {
           drawCallbacks.splice(drawCallbacks.indexOf(drawCallback), 1);
           form.parentNode.removeChild(form);
+          drawEverything();
         });
       }
 
