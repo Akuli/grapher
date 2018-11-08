@@ -4,10 +4,13 @@
   document.addEventListener('DOMContentLoaded', () => {
     /* eslint-disable indent */
     require([
-      'js/graph-drawer.js', 'js/math-parser.js', 'js/color-generator.js'],
-      (GraphDrawer, mathParser, generateColor) => {
+      'js/graph-drawer.js', 'js/math-parser.js', 'js/color-generator.js', 'js/drag-and-drop.js'],
+      (GraphDrawer, mathParser, generateColor, DragAndDrop) => {
     /* eslint-enable indent */
-      const drawer = new GraphDrawer(document.getElementById('graph-canvas'));
+      const canvas = document.getElementById('graph-canvas');
+      (new DragAndDrop(canvas)).enable();
+
+      const drawer = new GraphDrawer(canvas);
       const drawCallbacks = [];
 
       function drawEverything() {
