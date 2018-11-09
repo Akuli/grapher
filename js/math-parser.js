@@ -2,24 +2,25 @@ define([], function() {
   "use strict";
 
   const FUNCTIONS = {
-    abs: Math.abs,
-    sqrt: Math.sqrt,
-    cbrt: Math.cbrt,
-    sin: Math.sin,
-    cos: Math.cos,
-    tan: Math.tan,
-    sec: (x => 1/Math.cos(x)),
-    csc: (x => 1/Math.sin(x)),
-    cot: (x => Math.cos(x)/Math.sin(x)),
-    arcsin: Math.asin,
-    arccos: Math.acos,
-    arctan: Math.atan,
-    arcsec: (x => Math.acos(1/x)),
-    arccsc: (x => Math.asin(1/x)),
-    arccot: (x => Math.atan(1/x)),
-    log2: Math.log2,
-    log10: Math.log10,
-    ln: Math.log
+    abs: { nargs: 1, func: Math.abs },
+    sqrt: { nargs: 1, func: Math.sqrt },
+    cbrt: { nargs: 1, func: Math.cbrt },
+    sin: { nargs: 1, func: Math.sin },
+    cos: { nargs: 1, func: Math.cos },
+    tan: { nargs: 1, func: Math.tan },
+    sec: { nargs: 1, func: (x => 1/Math.cos(x)) },
+    csc: { nargs: 1, func: (x => 1/Math.sin(x)) },
+    cot: { nargs: 1, func: (x => Math.cos(x)/Math.sin(x)) },
+    arcsin: { nargs: 1, func: Math.asin },
+    arccos: { nargs: 1, func: Math.acos },
+    arctan: { nargs: 1, func: Math.atan },
+    arcsec: { nargs: 1, func: (x => Math.acos(1/x)) },
+    arccsc: { nargs: 1, func: (x => Math.asin(1/x)) },
+    arccot: { nargs: 1, func: (x => Math.atan(1/x)) },
+    log2: { nargs: 1, func: Math.log2 },
+    log10: { nargs: 1, func: Math.log10 },
+    ln: { nargs: 1, func: Math.log },
+    log: { nargs: 2, func: (x, base) => Math.log(x) / Math.log(base) }
   };
 
   const CONSTANTS = {
@@ -36,7 +37,7 @@ define([], function() {
     { name: 'function', regex: createKeyRegex(FUNCTIONS) },
     { name: 'constant', regex: createKeyRegex(CONSTANTS) },
     { name: 'var', regex: /^(theta|\w)/ },
-    { name: 'operator', regex: /^[+\-*/^|()]/ },
+    { name: 'operator', regex: /^[+\-*/^|(),]/ },
     { name: 'space', regex: /^\s+/ }
   ];
 
@@ -159,10 +160,23 @@ define([], function() {
         // sqrt(x*sqrt(y)), and because x was treated same as (x),
         // sqrt(x)*sqrt(y) was also parsed as sqrt(x*sqrt(y))
         const functionToken = this.iter.nextToken({ type: 'function' });
+        const functionInfo = FUNCTIONS[functionToken.value];
+        if (functionInfo === undefined) {
+          throw new Error("unknown function name: " + functionToken.value);
+        }
+        if (functionInfo.nargs < 1) {
+          throw new Error("wut? nargs < 1 of function " + functionToken.value);
+        }
+
         this.iter.nextToken({ type: 'operator', value: '(' });
-        const arg = this.parseExpression();
+        const args = [this.parseExpression()];
+        for (let i=1; i < functionInfo.nargs; i++) {
+          this.iter.nextToken({ type: 'operator', value: ',' });
+          args.push(this.parseExpression());
+        }
         this.iter.nextToken({ type: 'operator', value: ')' });
-        return { type: 'functionCall', functionName: functionToken.value, arg: arg };
+
+        return { type: 'functionCall', func: functionInfo.func, args: args };
       }
 
       if (this.iter.comingUp({ type: 'operator', value: '(' })) {
@@ -280,7 +294,7 @@ define([], function() {
     case 'number':
       return ast.value;
     case 'functionCall':
-      return FUNCTIONS[ast.functionName](evaluate(ast.arg, varValues));
+      return ast.func(...ast.args.map(arg => evaluate(arg, varValues)));
     default:
       throw new Error("unsupported ast expression type " + ast.type);
     }
