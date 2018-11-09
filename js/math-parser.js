@@ -2,8 +2,8 @@ define([], function() {
   "use strict";
 
   const FUNCTIONS = {
-    sqrt: Math.sqrt,
     abs: Math.abs,
+    sqrt: Math.sqrt,
     cbrt: Math.cbrt,
     sin: Math.sin,
     cos: Math.cos,
@@ -16,7 +16,10 @@ define([], function() {
     arctan: Math.atan,
     arcsec: (x => Math.acos(1/x)),
     arccsc: (x => Math.asin(1/x)),
-    arccot: (x => Math.atan(1/x))
+    arccot: (x => Math.atan(1/x)),
+    log2: Math.log2,
+    log10: Math.log10,
+    ln: Math.log
   };
 
   const CONSTANTS = {
