@@ -22,13 +22,25 @@ define([], function() {
     ln: { nargs: 1, func: Math.log },
     log: { nargs: 2, func: (x, base) => Math.log(x) / Math.log(base) }
   };
+  FUNCTIONS.cosec = FUNCTIONS.csc;
+  FUNCTIONS.cuberoot = FUNCTIONS.cbrt;
+  FUNCTIONS.root3 = FUNCTIONS.cbrt;
 
   const CONSTANTS = {
     e: Math.E,
     pi: Math.PI
   };
 
-  const createKeyRegex = obj => new RegExp('^(' + Object.getOwnPropertyNames(obj).join('|') + ')');
+  function createKeyRegex(obj) {
+    const keys = Object.getOwnPropertyNames(obj);
+
+    // sort by length, longest first
+    // e.g. cosec before cos, which is important, otherwise cosec(x) is error
+    keys.sort((a, b) => b.length - a.length);
+
+    return new RegExp('^(' + keys.join('|') + ')');
+  }
+
   const TOKEN_SPEC = [
     { name: 'number', regex: /^[0-9]+\.[0-9]+/ },
     { name: 'number', regex: /^[0-9]+\./ },
