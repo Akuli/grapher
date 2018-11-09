@@ -1,6 +1,14 @@
 define([], function() {
   "use strict";
 
+  function nthRoot(x, n) {
+    if (n % 2 === 1 && x < 0) {
+      // e.g. cuberoot of negative
+      return -nthRoot(-x, n);
+    }
+    return Math.pow(x, 1/n);
+  }
+
   const FUNCTIONS = {
     abs: { nargs: 1, func: Math.abs },
     sqrt: { nargs: 1, func: Math.sqrt },
@@ -20,11 +28,11 @@ define([], function() {
     log2: { nargs: 1, func: Math.log2 },
     log10: { nargs: 1, func: Math.log10 },
     ln: { nargs: 1, func: Math.log },
-    log: { nargs: 2, func: (x, base) => Math.log(x) / Math.log(base) }
+    log: { nargs: 2, func: (x, base) => Math.log(x) / Math.log(base) },
+    root: { nargs: 2, func: nthRoot }
   };
   FUNCTIONS.cosec = FUNCTIONS.csc;
   FUNCTIONS.cuberoot = FUNCTIONS.cbrt;
-  FUNCTIONS.root3 = FUNCTIONS.cbrt;
 
   const CONSTANTS = {
     e: Math.E,
