@@ -39,13 +39,19 @@ define([], function() {
     }
 
     get screenX() {
-      const result = (this.mathX - this._drawer.mathXMin)*this._xScale;
-      return (0 <= result && result <= this._drawer.screenWidth) ? result : NaN;
+      return (this.mathX - this._drawer.mathXMin)*this._xScale;
     }
 
     get screenY() {
-      const result = this._drawer.screenHeight - (this.mathY - this._drawer.mathYMin)*this._xScale;
-      return (0 <= result && result <= this._drawer.screenWidth) ? result : NaN;
+      return this._drawer.screenHeight - (this.mathY - this._drawer.mathYMin)*this._xScale;
+    }
+
+    get isOnScreen() {
+      if (!( isFinite(this.screenX) && isFinite(this.screenY) )) {
+        return false;
+      }
+      return (0 <= this.screenX && this.screenX <= this._drawer.screenWidth &&
+              0 <= this.screenY && this.screenY <= this._drawer.screenHeight);
     }
 
     mathDistance(that) {
@@ -92,7 +98,7 @@ define([], function() {
 
       // x axis
       this._ctx.strokeStyle = 'black';
-      if (!isNaN(origin.screenY)) {
+      if (0 <= origin.screenY && origin.screenY <= this._canvas.height) {
         this._ctx.beginPath();
         this._ctx.moveTo(0, origin.screenY);
         this._ctx.lineTo(this.screenWidth, origin.screenY);
@@ -116,7 +122,7 @@ define([], function() {
       }
 
       // y axis
-      if (!isNaN(origin.screenX)) {
+      if (0 <= origin.screenX && origin.screenX <= this._canvas.width) {
         this._ctx.beginPath();
         this._ctx.moveTo(origin.screenX, this.screenHeight);
         this._ctx.lineTo(origin.screenX, 0);
@@ -173,10 +179,7 @@ define([], function() {
 
       for (let t = tMin; t < tMax; t += stepSize) {
         const point = tToPoint(t);
-        if (!(isNaN(point.screenX) ||
-              isNaN(point.screenY) ||
-              isNaN(prevPoint.screenX) ||
-              isNaN(prevPoint.screenY))) {
+        if (point.isOnScreen && prevPoint.isOnScreen) {
           this._ctx.beginPath();
           this._ctx.moveTo(prevPoint.screenX, prevPoint.screenY);
           this._ctx.lineTo(point.screenX, point.screenY);

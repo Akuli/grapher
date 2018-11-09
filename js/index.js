@@ -8,8 +8,6 @@
       (GraphDrawer, mathParser, generateColor, DragAndDrop) => {
     /* eslint-enable indent */
       const canvas = document.getElementById('graph-canvas');
-      (new DragAndDrop(canvas)).enable();
-
       const drawer = new GraphDrawer(canvas);
       const drawCallbacks = [];
 
@@ -206,6 +204,24 @@
 
       document.getElementById('add-graph-button').addEventListener('click', addGraph);
       addGraph();
+
+      const dragAndDrop = new DragAndDrop(canvas);
+      dragAndDrop.enable();
+      dragAndDrop.onDragEnd = (screenX1, screenY1, screenX2, screenY2) => {
+        const point1 = drawer.screenPoint(screenX1, screenY1);
+        const point2 = drawer.screenPoint(screenX2, screenY2);
+
+        // changing drawer.mathXMin and stuff changes screenOrigin and deltaPoint
+        // that's why these are here
+        const mathDeltaX = point2.mathX - point1.mathX;
+        const mathDeltaY = point2.mathY - point1.mathY;
+
+        drawer.mathXMin -= mathDeltaX;
+        drawer.mathXMax -= mathDeltaX;
+        drawer.mathYMin -= mathDeltaY;
+        drawer.mathYMax -= mathDeltaY;
+        drawEverything();
+      };
     });
   });
 }());
