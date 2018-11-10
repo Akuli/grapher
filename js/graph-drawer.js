@@ -179,7 +179,7 @@ define([], function() {
 
       for (let t = tMin; t < tMax; t += stepSize) {
         const point = tToPoint(t);
-        if (point.isOnScreen && prevPoint.isOnScreen) {
+        if (point.isOnScreen || prevPoint.isOnScreen) {
           this._ctx.beginPath();
           this._ctx.moveTo(prevPoint.screenX, prevPoint.screenY);
           this._ctx.lineTo(point.screenX, point.screenY);
