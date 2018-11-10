@@ -1,27 +1,25 @@
 define([], function() {
   "use strict";
 
-  // https://en.wikipedia.org/wiki/Web_colors#HTML_color_names
-  // i removed white, silver and gray, and changed the order to my liking
-  const colors = [
-    '#0000FF',
-    '#FF0000',
-    '#800000',
-    '#808000',
-    '#00FF00',
-    '#008000',
-    '#00FFFF',
-    '#008080',
-    '#000080',
-    '#FF00FF',
-    '#800080',
-    '#000000',
-    '#FFFF00'
-  ];
+  // this returns only "bright colors"
+  // "bright colors" have always either full red, full green or full blue
+  // and one of the other values is a random number
+  function createRandomColor() {
+    const rgb = [ 0, 0, 0 ];
 
-  return () => {
-    const result = colors.shift();
-    colors.push(result);
-    return result;
-  };
+    // choose two random indexes that are not the same
+    const i = Math.floor(Math.random() * 3);
+    let j;
+    do {
+      j = Math.floor(Math.random() * 3);
+    } while (j === i);
+
+    rgb[i] = 0xff;
+    rgb[j] = Math.floor(Math.random() * 256);
+    console.log(rgb);
+
+    return '#' + rgb.map(value => value.toString(16).padStart(2, '0')).join('');
+  }
+
+  return createRandomColor;
 });

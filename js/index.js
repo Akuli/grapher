@@ -63,18 +63,21 @@
       let nextGraphNumber = 1;
 
       function addGraph() {
+        const graphNumber = nextGraphNumber++;
+
         const form = document.createElement('form');
         form.classList.add('graph-settings');
         document.getElementById('graph-settings').appendChild(form);
 
         const title = document.createElement('h4');
         title.classList.add('graph-title');
-        title.textContent = "Graph " + (nextGraphNumber++);
+        title.textContent = "Graph " + graphNumber;
 
         const colorInput = document.createElement('input');
         colorInput.classList.add('graph-color');
         colorInput.type = 'color';
-        colorInput.value = generateColor();
+        // first is blue for consistency, rest are random
+        colorInput.value = graphNumber === 1 ? '#0000ff' : generateColor();
         colorInput.addEventListener('input', drawEverything);
 
         const removeButton = document.createElement('button');
