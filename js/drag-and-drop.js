@@ -20,16 +20,16 @@ define([], function() {
     _startDragging(event) {
       event.preventDefault();
       this._dragState = {
-        initialX: event.clientX,
-        initialY: event.clientY,
+        initialX: event.offsetX,
+        initialY: event.offsetY,
         imageData: this._ctx.getImageData(0, 0, this._canvas.width, this._canvas.height)
       };
     }
 
     _getDeltaXy(event) {
       return [
-        event.clientX - this._dragState.initialX,
-        event.clientY - this._dragState.initialY
+        event.offsetX - this._dragState.initialX,
+        event.offsetY - this._dragState.initialY
       ];
     }
 
@@ -44,7 +44,7 @@ define([], function() {
       if (this._dragState !== null) {
         this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         if (this.onDragEnd !== null) {
-          this.onDragEnd(this._dragState.initialX, this._dragState.initialY, event.clientX, event.clientY);
+          this.onDragEnd(this._dragState.initialX, this._dragState.initialY, event.offsetX, event.offsetY);
         }
         this._dragState = null;
       }

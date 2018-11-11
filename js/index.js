@@ -225,6 +225,13 @@
         drawer.mathYMax -= mathDeltaY;
         drawEverything();
       };
+
+      canvas.addEventListener('mousewheel', event => {
+        const mousePos = drawer.screenPoint(event.offsetX, event.offsetY);
+        drawer.zoom(mousePos, event.deltaY);
+        drawEverything();
+        event.preventDefault();
+      });
     });
   });
 }());

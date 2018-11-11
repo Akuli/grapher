@@ -11,6 +11,7 @@ define([], function() {
   const DEFAULT_PIXELS_PER_MATH_UNIT = 50;
   const ARROW_SIZE = 8;
   const TICK_SIZE = 4;
+  const ZOOM_FACTOR = 1.001;
 
   class Point {
     constructor(graphDrawer, x, y, mathOrScreen) {
@@ -88,6 +89,25 @@ define([], function() {
 
     screenPoint(screenX, screenY) {
       return new Point(this, screenX, screenY, 'screen');
+    }
+
+    // zoom in or out so that the place of the given point doesn't change
+    zoom(fixPoint, howMuch) {
+      // calling zoom(point, 1) twice must be same as zoom(point, 2)
+      // that's why this is exponential
+      const factor = Math.pow(ZOOM_FACTOR, howMuch);
+
+      // fixPoint.mathX and fixPoint.mathY don't change when this.mathXMin and
+      // its friends change
+      const leftDistance = this.mathXMin - fixPoint.mathX;
+      const rightDistance = this.mathXMax - fixPoint.mathX;
+      const topDistance = this.mathYMin - fixPoint.mathY;
+      const bottomDistance = this.mathYMax - fixPoint.mathY;
+
+      this.mathXMin = leftDistance * factor + fixPoint.mathX;
+      this.mathXMax = rightDistance * factor + fixPoint.mathX;
+      this.mathYMin = topDistance * factor + fixPoint.mathY;
+      this.mathYMax = bottomDistance * factor + fixPoint.mathY;
     }
 
     // clears everything, draws axises and grid
