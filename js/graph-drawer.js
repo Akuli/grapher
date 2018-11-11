@@ -1,4 +1,8 @@
-// TODO: incontinuity of y=arctan(1/x) screws things up
+// TODO: these are known to graph badly:
+//    y = sin(1/x)
+//    y = 1/x
+//    y = arctan(1/x)
+//    y = sin(ln(x))/x
 
 define([], function() {
   "use strict";
