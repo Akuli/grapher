@@ -46,12 +46,8 @@ define([], function() {
       return this._drawer.screenHeight - (this.mathY - this._drawer.mathYMin)*this._xScale;
     }
 
-    get isOnScreen() {
-      if (!( isFinite(this.screenX) && isFinite(this.screenY) )) {
-        return false;
-      }
-      return (0 <= this.screenX && this.screenX <= this._drawer.screenWidth &&
-              0 <= this.screenY && this.screenY <= this._drawer.screenHeight);
+    get isSane() {
+      return isFinite(this.mathX) && isFinite(this.mathY);
     }
 
     mathDistance(that) {
@@ -179,7 +175,7 @@ define([], function() {
 
       for (let t = tMin; t < tMax; t += stepSize) {
         const point = tToPoint(t);
-        if (point.isOnScreen || prevPoint.isOnScreen) {
+        if (prevPoint.isSane && point.isSane) {
           this._ctx.beginPath();
           this._ctx.moveTo(prevPoint.screenX, prevPoint.screenY);
           this._ctx.lineTo(point.screenX, point.screenY);
