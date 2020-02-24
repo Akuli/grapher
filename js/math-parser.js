@@ -1,42 +1,42 @@
 define([], function() {
   "use strict";
 
-  function nthRoot(x, n) {
-    if (n % 2 === 1 && x < 0) {
-      // e.g. cuberoot of negative
-      return -nthRoot(-x, n);
-    }
-    return Math.pow(x, 1/n);
-  }
+  // this creates a javascript function object from the ast (evil eval haxor, muhaha)
+  // turns out to be about twice as fast as creating ast and evaluating recursively
+  // and yes, the evaluating is very perf critical
 
   const FUNCTIONS = {
-    abs: { nargs: 1, func: Math.abs },
-    sqrt: { nargs: 1, func: Math.sqrt },
-    cbrt: { nargs: 1, func: Math.cbrt },
-    sin: { nargs: 1, func: Math.sin },
-    cos: { nargs: 1, func: Math.cos },
-    tan: { nargs: 1, func: Math.tan },
-    sec: { nargs: 1, func: (x => 1/Math.cos(x)) },
-    csc: { nargs: 1, func: (x => 1/Math.sin(x)) },
-    cot: { nargs: 1, func: (x => Math.cos(x)/Math.sin(x)) },
-    arcsin: { nargs: 1, func: Math.asin },
-    arccos: { nargs: 1, func: Math.acos },
-    arctan: { nargs: 1, func: Math.atan },
-    arcsec: { nargs: 1, func: (x => Math.acos(1/x)) },
-    arccsc: { nargs: 1, func: (x => Math.asin(1/x)) },
-    arccot: { nargs: 1, func: (x => Math.atan(1/x)) },
-    log2: { nargs: 1, func: Math.log2 },
-    log10: { nargs: 1, func: Math.log10 },
-    ln: { nargs: 1, func: Math.log },
-    log: { nargs: 2, func: (x, base) => Math.log(x) / Math.log(base) },
-    root: { nargs: 2, func: nthRoot }
+    // createJs result and arguments are wrapped in parentheses automagically to avoid precedence issues
+    abs: { nargs: 1, createJs: x => `Math.abs(${x})` },
+    sqrt: { nargs: 1, createJs: x => `Math.sqrt(${x})` },
+    cbrt: { nargs: 1, createJs: x => `Math.cbrt(${x})` },
+    sin: { nargs: 1, createJs: x => `Math.sin(${x})` },
+    cos: { nargs: 1, createJs: x => `Math.cos(${x})` },
+    tan: { nargs: 1, createJs: x => `Math.tan(${x})` },
+    sec: { nargs: 1, createJs: x => `1 / Math.cos(${x})` },
+    csc: { nargs: 1, createJs: x => `1 / Math.sin(${x})` },
+    cot: { nargs: 1, createJs: x => `Math.cos(${x}) / Math.sin(${x})` },
+    arcsin: { nargs: 1, createJs: x => `Math.asin(${x})` },
+    arccos: { nargs: 1, createJs: x => `Math.acos(${x})` },
+    arctan: { nargs: 1, createJs: x => `Math.atan(${x})` },
+    arcsec: { nargs: 1, createJs: x => `Math.acos(1 / ${x})` },
+    arccsc: { nargs: 1, createJs: x => `Math.asin(1 / ${x})` },
+    arccot: { nargs: 1, createJs: x => `Math.atan(1 / ${x})` },
+    log2: { nargs: 1, createJs: x => `Math.log2(${x})` },
+    log10: { nargs: 1, createJs: x => `Math.log10(${x})` },
+    ln: { nargs: 1, createJs: x => `Math.log(${x})` },
+    log: { nargs: 2, createJs: (x, base) => `Math.log(${x}) / Math.log(${base})` },
+    root: { nargs: 2, createJs: (x, n) =>
+      // handle e.g. cuberoot (n=3) of negative
+      `(${n} % 2 === 1 && ${x} < 0) ? -Math.pow(-${x}, 1/${n}) : Math.pow(${x}, 1/${n})` },
   };
+
   FUNCTIONS.cosec = FUNCTIONS.csc;
   FUNCTIONS.cuberoot = FUNCTIONS.cbrt;
 
   const CONSTANTS = {
-    e: Math.E,
-    pi: Math.PI
+    e: 'Math.E',
+    pi: 'Math.PI'
   };
 
   function createKeyRegex(obj) {
@@ -142,6 +142,7 @@ define([], function() {
     }
   }
 
+  // parsed math is returned as JS code
   class Parser {
     constructor(tokenGenerator, allowedVarNames) {
       this.iter = new TokenIterator(tokenGenerator);
@@ -165,12 +166,12 @@ define([], function() {
         if (!this.varNames.includes(varName)) {
           throw new Error("unknown variable: " + varName);
         }
-        return { type: 'var', name: varName };
+        return varName;
       }
 
       if (this.iter.comingUp({ type: 'constant' })) {
         const token = this.iter.nextToken({ type: 'constant' });
-        return { type: 'number', value: CONSTANTS[token.value] };
+        return CONSTANTS[token.value];
       }
 
       if (this.iter.comingUp({ type: 'function' })) {
@@ -196,7 +197,7 @@ define([], function() {
         }
         this.iter.nextToken({ type: 'operator', value: ')' });
 
-        return { type: 'functionCall', func: functionInfo.func, args: args };
+        return functionInfo.createJs(...args.map(arg => '(' + arg + ')'));
       }
 
       if (this.iter.comingUp({ type: 'operator', value: '(' })) {
@@ -207,7 +208,7 @@ define([], function() {
       }
 
       if (this.iter.comingUp({ type: 'number' })) {
-        return { type: 'number', value: +this.iter.nextToken({ type: 'number' }).value };
+        return this.iter.nextToken({ type: 'number' }).value;
       }
 
       throw new Error("don't know how to parse " + this.iter.nextToken({}).value);
@@ -240,7 +241,7 @@ define([], function() {
 
       if (minusing) {
         // add "0 -" in front of all the things
-        funnyStuff.splice(0, 0, { type: 'number', value: 0 }, '-');
+        funnyStuff.splice(0, 0, '0', '-');
       }
 
       while (!this.iter.eof() && (this.expressionComingUp() || this.binaryOperatorComingUp())) {
@@ -272,8 +273,14 @@ define([], function() {
         while (indexes.length !== 0) {
           const i = indexes.shift();
           const [ lhs, op, rhs ] = funnyStuff.splice(i-1, 3);
-          const opAst = { type: 'operatorCall', operator: op, lhs: lhs, rhs: rhs };
-          funnyStuff.splice(i-1, 0, opAst);
+
+          let jsCode;
+          if (op === '^') {
+            jsCode = 'Math.pow((' + lhs + '), (' + rhs + '))';
+          } else {
+            jsCode = '(' + lhs + ')' + op + '(' + rhs + ')';
+          }
+          funnyStuff.splice(i-1, 0, jsCode);
 
           // 3 funnyStuff elements were replaced with just 1, so adjust indexes
           for (let i = 0; i < indexes.length; i++) {
@@ -291,34 +298,13 @@ define([], function() {
 
   function parse(mathString, allowedVarNames) {
     const parser = new Parser(tokenizeExpression(mathString), allowedVarNames);
-    const result = parser.parseExpression();
+    const jsCode = parser.parseExpression();
+
     if (!parser.iter.eof()) {
       throw new Error("the math contains something invalid at the end");
     }
-    return result;
+    return new Function(...allowedVarNames, 'return ' + jsCode);
   }
 
-  function evaluate(ast, varValues) {
-    switch (ast.type) {
-    case 'operatorCall':
-      switch (ast.operator) {
-      case '+': return evaluate(ast.lhs, varValues) + evaluate(ast.rhs, varValues);
-      case '-': return evaluate(ast.lhs, varValues) - evaluate(ast.rhs, varValues);
-      case '*': return evaluate(ast.lhs, varValues) * evaluate(ast.rhs, varValues);
-      case '/': return evaluate(ast.lhs, varValues) / evaluate(ast.rhs, varValues);
-      case '^': return Math.pow(evaluate(ast.lhs, varValues), evaluate(ast.rhs, varValues));
-      default: throw new Error("unsupported operator: " + ast.operator);
-      }
-    case 'var':
-      return varValues[ast.name];
-    case 'number':
-      return ast.value;
-    case 'functionCall':
-      return ast.func(...ast.args.map(arg => evaluate(arg, varValues)));
-    default:
-      throw new Error("unsupported ast expression type " + ast.type);
-    }
-  }
-
-  return { parse: parse, evaluate: evaluate };
+  return { parse: parse };
 });

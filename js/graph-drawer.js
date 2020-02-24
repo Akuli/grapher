@@ -7,7 +7,6 @@
 define([], function() {
   "use strict";
 
-  const NSTEPS = 200;
   const DEFAULT_PIXELS_PER_MATH_UNIT = 50;
   const ARROW_SIZE = 8;
   const TICK_SIZE = 4;
@@ -188,25 +187,48 @@ define([], function() {
       }
     }
 
-    drawParametric(tToPoint, tMin, tMax) {
+    drawZeroCurves(f) {
       if (this.drawingColor === null) {
         throw new Error("drawingColor wasn't set");
       }
 
-      const stepSize = (tMax - tMin) / NSTEPS;
-      let prevPoint = this.mathPoint(NaN, NaN);
-      this._ctx.strokeStyle = this.drawingColor;
+      // assumes #RRGGBB format
+      const rgb = parseInt(this.drawingColor.slice(1), 16);
+      const r = (rgb & 0xff0000) >> 16;
+      const g = (rgb & 0x00ff00) >> 8;
+      const b = (rgb & 0x0000ff) >> 0;
 
-      for (let t = tMin; t < tMax; t += stepSize) {
-        const point = tToPoint(t);
-        if (prevPoint.isSane && point.isSane) {
-          this._ctx.beginPath();
-          this._ctx.moveTo(prevPoint.screenX, prevPoint.screenY);
-          this._ctx.lineTo(point.screenX, point.screenY);
-          this._ctx.stroke();
+      const screenWidth = this.screenWidth;
+      const screenHeight = this.screenHeight;
+
+      const xDiff = (this.mathXMax - this.mathXMin) / screenWidth;
+      const yDiff = -(this.mathYMax - this.mathYMin) / screenHeight;  // negative number
+
+      const signTable = new Array(this.screenHeight).fill().map(() => new Array(this.screenWidth));
+
+      for (let screenX = 0, mathX = this.mathXMin; screenX < screenWidth; screenX++, mathX += xDiff) {
+        for (let screenY = 0, mathY = this.mathYMax; screenY < screenHeight; screenY++, mathY += yDiff) {
+          signTable[screenY][screenX] = (f(mathX, mathY) > 0);
         }
-        prevPoint = point;
       }
+
+      const imageData = this._ctx.getImageData(0, 0, screenWidth, screenHeight);
+      const pixels = imageData.data;
+
+      for (let screenX = 0; screenX < screenWidth-1; screenX++) {
+        for (let screenY = 0; screenY < screenHeight-1; screenY++) {
+          if (signTable[screenY][screenX] !== signTable[screenY][screenX+1] ||
+              signTable[screenY][screenX] !== signTable[screenY+1][screenX]) {
+            const i = 4*(screenWidth*screenY + screenX);
+            pixels[i+0] = r;
+            pixels[i+1] = g;
+            pixels[i+2] = b;
+            pixels[i+3] = 255;
+          }
+        }
+      }
+
+      this._ctx.putImageData(imageData, 0, 0);
     }
   }
 

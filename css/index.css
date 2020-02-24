@@ -1,21 +1,17 @@
+.equation-input {
+    width: 15em;
+}
+
 input.invalid-math {
     background-color: #ff6666;
 }
 
-div.entry-area {
-    margin-left: 3em;
-}
-
-input.narrow {
-    width: 4em;
-}
-
-form.graph-settings {
+#graph-settings > div {
     float: left;
     margin: 2px;
     border: 1px solid;
     border-radius: 10px;
-    padding: 5px;
+    padding: 10px;
 }
 
 h4.graph-title {
