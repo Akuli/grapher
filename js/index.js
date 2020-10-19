@@ -77,9 +77,7 @@
 
         const drawCallback = () => {
           drawer.drawingColor = colorInput.value;
-          console.log(drawer.drawingColor);
-          const f = textInputToFunction(equationInput);
-          drawer.drawZeroCurves(f);
+          drawer.drawZeroCurves(textInputToFunction(equationInput));
         };
 
         drawCallbacks.push(drawCallback);
@@ -113,9 +111,14 @@
         drawEverything();
       };
 
-      canvas.addEventListener('mousewheel', event => {
+      canvas.addEventListener('wheel', event => {
+        // for some reason, firefox zooms slower than chromium
+        let delta = event.deltaY;
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') !== -1) {
+          delta *= 20;
+        }
         const mousePos = drawer.screenPoint(event.offsetX, event.offsetY);
-        drawer.zoom(mousePos, event.deltaY);
+        drawer.zoom(mousePos, delta);
         drawEverything();
         event.preventDefault();
       });
