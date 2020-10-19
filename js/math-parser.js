@@ -22,6 +22,7 @@ define([], function() {
     arcsec: { nargs: 1, createJs: x => `Math.acos(1 / ${x})` },
     arccsc: { nargs: 1, createJs: x => `Math.asin(1 / ${x})` },
     arccot: { nargs: 1, createJs: x => `Math.atan(1 / ${x})` },
+    exp: { nargs: 1, createJs: x => `Math.exp(${x})` },   // same as e^x
     log2: { nargs: 1, createJs: x => `Math.log2(${x})` },
     log10: { nargs: 1, createJs: x => `Math.log10(${x})` },
     ln: { nargs: 1, createJs: x => `Math.log(${x})` },
