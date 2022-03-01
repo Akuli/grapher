@@ -8,7 +8,7 @@ define([], function () {
     var canvas = document.getElementById("graph-canvas");
     var a = document.createElement("a"); // create a temporary link element
     a.href = canvas.toDataURL("image/png"); // set the link's href to the data URL
-    a.download = Date.now().toString(); // the file name of the image
+    a.download = "graph"; // the file name of the image
     a.click(); // simulate a click on the link to download the image
   }
 
