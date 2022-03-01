@@ -4,8 +4,8 @@
   document.addEventListener('DOMContentLoaded', () => {
     /* eslint-disable indent */
     require([
-      'js/graph-drawer.js', 'js/math-parser.js', 'js/color-generator.js', 'js/drag-and-drop.js'],
-      (GraphDrawer, mathParser, generateColor, DragAndDrop) => {
+      'js/graph-drawer.js', 'js/math-parser.js', 'js/color-generator.js', 'js/drag-and-drop.js', 'js/download.js'],
+      (GraphDrawer, mathParser, generateColor, DragAndDrop, downloadGraph) => {
     /* eslint-enable indent */
       const canvas = document.getElementById('graph-canvas');
       const drawer = new GraphDrawer(canvas);
@@ -122,6 +122,8 @@
         drawEverything();
         event.preventDefault();
       });
+
+      document.getElementById('download-button').addEventListener('click', downloadGraph);
     });
   });
 }());
