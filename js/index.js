@@ -48,10 +48,10 @@
             const [minInput, maxInput] = rangeSpan.querySelectorAll("input");
             slider.min = minInput.value;
             slider.max = maxInput.value;
-            slider.step = (slider.max - slider.min)/1000
+            slider.step = (slider.max - slider.min)/1000;
             label.textContent = `${varName} = ${slider.value}`;
             drawEverything();
-          }
+          };
 
           slider.oninput = syncAllTheThingsNicely;
           for (const input of rangeSpan.querySelectorAll("input")) {
