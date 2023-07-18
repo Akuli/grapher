@@ -49,14 +49,18 @@
           slider.step = (slider.max - slider.min)/1000;
 
           const label = document.createElement("label");
-          label.id = slider.id + 'label';
           label.htmlFor = slider.id;
-          label.textContent = name + ":";
 
           sliders[name] = slider;
           document.getElementById("slider-container").appendChild(label);
           document.getElementById("slider-container").appendChild(slider);
-          slider.addEventListener('input', drawEverything);
+
+          const updateLabel = () => {
+            label.textContent = name + " = " + slider.value;
+          };
+
+          updateLabel();
+          slider.oninput = () => { updateLabel(); drawEverything(); };
         } else {
           // Show existing slider
           sliders[name].style.display = "";

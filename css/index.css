@@ -14,6 +14,12 @@ body {
     align-content: flex-start;
 }
 
+#slider-container > label {
+    width: 5em;
+    white-space: nowrap;
+    text-overflow: clip;
+}
+
 .equation-input {
     width: 15em;
 }
