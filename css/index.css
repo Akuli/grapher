@@ -1,3 +1,19 @@
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#top-row {
+    display: flex;
+    flex-direction: row;
+}
+
+#slider-container {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    align-content: flex-start;
+}
+
 .equation-input {
     width: 15em;
 }

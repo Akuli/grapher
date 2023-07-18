@@ -1,6 +1,13 @@
 (function() {
   "use strict";
 
+  function removeFromArray(array, item) {
+    const i = array.indexOf(item);
+    if (i !== -1) {
+      array.splice(i, 1);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     /* eslint-disable indent */
     require([
@@ -11,25 +18,69 @@
       const drawer = new GraphDrawer(canvas);
       const drawCallbacks = [];
 
+      const sliders = {};  // keys are math variable names
+      let unusedSliders = [];  // gets clean up during drawing
+
       function drawEverything() {
         drawer.initDrawing();
+
+        unusedSliders = Object.values(sliders);
         for (const cb of drawCallbacks) {
           cb();
         }
+
+        // Hide unnecessary sliders, but keep them around so we remember min, max and value
+        for (const slider of unusedSliders) {
+          slider.style.display = "none";
+          slider.previousSibling.style.display = "none"; // hide label
+        }
       }
 
-      function textInputToFunction(input) {
+      let sliderIdCounter = 0;
+
+      function getSliderValue(name) {
+        if (sliders[name] === undefined) {
+          // Create new slider
+          const slider = document.createElement('input');
+          slider.id = "slider" + sliderIdCounter++;
+          slider.type = 'range';
+          slider.min = 0;
+          slider.max = 1;
+          slider.step = (slider.max - slider.min)/1000;
+
+          const label = document.createElement("label");
+          label.id = slider.id + 'label';
+          label.htmlFor = slider.id;
+          label.textContent = name + ":";
+
+          sliders[name] = slider;
+          document.getElementById("slider-container").appendChild(label);
+          document.getElementById("slider-container").appendChild(slider);
+          slider.addEventListener('input', drawEverything);
+        } else {
+          // Show existing slider
+          sliders[name].style.display = "";
+          sliders[name].previousSibling.style.display = "";  // show label
+
+          // Make sure that this slider will not be hidden as unused
+          removeFromArray(unusedSliders, sliders[name]);
+        }
+
+        return +sliders[name].value;
+      }
+
+      function parseTextInput(input) {
         input.classList.remove('invalid-math');
         try {
           const equationParts = input.value.split('=');
           if (equationParts.length !== 2) {
             throw new Error("equation should contain exactly 1 equal sign");
           }
-          return mathParser.parse(`(${equationParts[0]}) - (${equationParts[1]})`, ['x', 'y']);
+          return mathParser.parse(`(${equationParts[0]}) - (${equationParts[1]})`, getSliderValue);
         } catch (error) {
           console.log(error);
           input.classList.add('invalid-math');
-          return mathParser.parse(`1/0`, ['x', 'y']);
+          return mathParser.parse('1/0', null);
         }
       }
 
@@ -77,14 +128,15 @@
 
         const drawCallback = () => {
           drawer.drawingColor = colorInput.value;
-          drawer.drawZeroCurves(textInputToFunction(equationInput));
+          const mathFunction = parseTextInput(equationInput);
+          drawer.drawZeroCurves(mathFunction);
         };
 
         drawCallbacks.push(drawCallback);
         drawEverything();
 
         removeButton.addEventListener('click', () => {
-          drawCallbacks.splice(drawCallbacks.indexOf(drawCallback), 1);
+          removeFromArray(drawCallbacks, drawCallback);
           settingsDiv.parentNode.removeChild(settingsDiv);
           drawEverything();
         });
