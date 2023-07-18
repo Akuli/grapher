@@ -8,7 +8,6 @@
       (GraphDrawer, mathParser, generateColor, DragAndDrop, downloadGraph) => {
     /* eslint-enable indent */
       const canvas = document.getElementById('graph-canvas');
-
       const drawer = new GraphDrawer(canvas);
       const drawCallbacks = [];
 
@@ -71,7 +70,7 @@
         return +slider.value;
       }
 
-      function parseTextInput(input) {
+      function textInputToFunction(input) {
         input.classList.remove('invalid-math');
         try {
           const equationParts = input.value.split('=');
@@ -130,8 +129,7 @@
 
         const drawCallback = () => {
           drawer.drawingColor = colorInput.value;
-          const mathFunction = parseTextInput(equationInput);
-          drawer.drawZeroCurves(mathFunction);
+          drawer.drawZeroCurves(textInputToFunction(equationInput));
         };
 
         drawCallbacks.push(drawCallback);
