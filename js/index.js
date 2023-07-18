@@ -13,9 +13,61 @@
 
       function drawEverything() {
         drawer.initDrawing();
+
+        // Hide all sliders initially, will be shown as needed
+        for (const elem of document.querySelectorAll("#slider-container > *")) {
+          elem.style.display = "none";
+        }
+
         for (const cb of drawCallbacks) {
           cb();
         }
+      }
+
+      function getSliderValue(varName) {
+        let slider = document.getElementById(`slider-${varName}`);
+        if (!slider) {
+          // Create new slider
+          slider = document.createElement('input');
+          slider.id = `slider-${varName}`;
+          slider.type = 'range';
+          slider.min = 0;
+          slider.max = 1;
+          slider.value = 1;  // TODO: why doesn't 0.5 work?
+          slider.step = 0.001;
+
+          const label = document.createElement("label");
+          label.htmlFor = slider.id;
+          label.textContent = `${varName} = 1`;
+
+          const rangeSpan = document.createElement("span");
+          rangeSpan.innerHTML = "Range: <input value=0> to <input value=1>";
+
+          const syncAllTheThingsNicely = () => {
+            const [minInput, maxInput] = rangeSpan.querySelectorAll("input");
+            slider.min = minInput.value;
+            slider.max = maxInput.value;
+            slider.step = (slider.max - slider.min)/1000;
+            label.textContent = `${varName} = ${slider.value}`;
+            drawEverything();
+          };
+
+          slider.oninput = syncAllTheThingsNicely;
+          for (const input of rangeSpan.querySelectorAll("input")) {
+            input.oninput = syncAllTheThingsNicely;
+          }
+
+          document.getElementById("slider-container").appendChild(label);
+          document.getElementById("slider-container").appendChild(slider);
+          document.getElementById("slider-container").appendChild(rangeSpan);
+        }
+
+        // Show the slider
+        slider.style.display = "";
+        slider.previousSibling.style.display = "";  // show label
+        slider.nextSibling.style.display = "";  // show range selector
+
+        return +slider.value;
       }
 
       function textInputToFunction(input) {
@@ -25,11 +77,11 @@
           if (equationParts.length !== 2) {
             throw new Error("equation should contain exactly 1 equal sign");
           }
-          return mathParser.parse(`(${equationParts[0]}) - (${equationParts[1]})`, ['x', 'y']);
+          return mathParser.parse(`(${equationParts[0]}) - (${equationParts[1]})`, getSliderValue);
         } catch (error) {
           console.log(error);
           input.classList.add('invalid-math');
-          return mathParser.parse(`1/0`, ['x', 'y']);
+          return mathParser.parse('1/0', null);
         }
       }
 

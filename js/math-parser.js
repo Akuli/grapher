@@ -145,9 +145,9 @@ define([], function() {
 
   // parsed math is returned as JS code
   class Parser {
-    constructor(tokenGenerator, allowedVarNames) {
+    constructor(tokenGenerator, constantHandler) {
       this.iter = new TokenIterator(tokenGenerator);
-      this.varNames = allowedVarNames;
+      this.constantHandler = constantHandler;
     }
 
     expressionComingUp() {
@@ -164,10 +164,12 @@ define([], function() {
     parseExpressionWithoutBinaryOperators() {
       if (this.iter.comingUp({ type: 'var' })) {
         const varName = this.iter.nextToken({ type: 'var' }).value;
-        if (!this.varNames.includes(varName)) {
-          throw new Error("unknown variable: " + varName);
+        if (varName === 'x' || varName === 'y') {
+          return varName;
+        } else {
+          // Place the value of a constant into the javascript code
+          return this.constantHandler(varName) + "";
         }
-        return varName;
       }
 
       if (this.iter.comingUp({ type: 'constant' })) {
@@ -297,15 +299,16 @@ define([], function() {
     }
   }
 
-  function parse(mathString, allowedVarNames) {
-    const parser = new Parser(tokenizeExpression(mathString), allowedVarNames);
+  function parse(mathString, constantHandler) {
+    const parser = new Parser(tokenizeExpression(mathString), constantHandler);
     const jsCode = parser.parseExpression();
 
     if (!parser.iter.eof()) {
       throw new Error("the math contains something invalid at the end");
     }
-    return new Function(...allowedVarNames, 'return ' + jsCode);
+
+    return new Function(['x', 'y'], 'return ' + jsCode);
   }
 
-  return { parse: parse };
+  return { parse };
 });
