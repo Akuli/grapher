@@ -66,7 +66,7 @@ define([], function() {
   class GraphDrawer {
     constructor(canvas) {
       this._canvas = canvas;
-      this._ctx = canvas.getContext('2d');
+      this._ctx = canvas.getContext('2d', { willReadFrequently: true });
       this.mathXMin = -(canvas.width / DEFAULT_PIXELS_PER_MATH_UNIT / 2);
       this.mathXMax = canvas.width / DEFAULT_PIXELS_PER_MATH_UNIT / 2;
       this.mathYMin = -(canvas.height / DEFAULT_PIXELS_PER_MATH_UNIT / 2);
