@@ -10,14 +10,23 @@ body {
 
 #slider-container {
     display: grid;
-    grid-template-columns: auto auto auto auto;
+    grid-template-columns: auto auto auto;
     align-content: flex-start;
 }
 
 #slider-container > label {
     width: 5em;
     white-space: nowrap;
-    text-overflow: clip;
+    text-overflow: clip;  /* TODO: this doesn't actually clip the text :( */
+}
+
+#slider-container > span {
+    margin-left: 3em;
+    text-wrap: nowrap;
+}
+
+#slider-container > span > input {
+    width: 3em;
 }
 
 .equation-input {

@@ -30,47 +30,66 @@
         }
 
         // Hide unnecessary sliders, but keep them around so we remember min, max and value
+        const usedSliders = Object.values(sliders).filter(s => !unusedSliders.includes(s));
+        for (const slider of usedSliders) {
+          slider.style.display = "";
+          slider.previousSibling.style.display = ""; // label
+          slider.nextSibling.style.display = ""; // range selector
+        }
         for (const slider of unusedSliders) {
           slider.style.display = "none";
-          slider.previousSibling.style.display = "none"; // hide label
+          slider.previousSibling.style.display = "none"; // label
+          slider.nextSibling.style.display = "none"; // range selector
         }
       }
 
-      let sliderIdCounter = 0;
-
-      function getSliderValue(name) {
-        if (sliders[name] === undefined) {
+      function getSliderValue(varName) {
+        if (sliders[varName] === undefined) {
           // Create new slider
           const slider = document.createElement('input');
-          slider.id = "slider" + sliderIdCounter++;
+          slider.id = `slider-${varName}`;
           slider.type = 'range';
           slider.min = 0;
           slider.max = 1;
-          slider.step = (slider.max - slider.min)/1000;
+          slider.value = 1;  // TODO: why doesn't 0.5 work here?
+          slider.step = 0.001;
 
           const label = document.createElement("label");
           label.htmlFor = slider.id;
+          label.textContent = `${varName} = 1`;
 
-          sliders[name] = slider;
+          const rangeSpan = document.createElement("span");
+          rangeSpan.innerHTML = "Range: <input value=0> to <input value=1>";
+
+          const syncAllTheThingsNicely = () => {
+            const [minInput, maxInput] = rangeSpan.querySelectorAll("input");
+            slider.min = minInput.value;
+            slider.max = maxInput.value;
+            slider.step = (slider.max - slider.min)/1000
+            label.textContent = `${varName} = ${slider.value}`;
+            drawEverything();
+          }
+
+          slider.oninput = syncAllTheThingsNicely;
+          for (const input of rangeSpan.querySelectorAll("input")) {
+            input.oninput = syncAllTheThingsNicely;
+          }
+
+          sliders[varName] = slider;
           document.getElementById("slider-container").appendChild(label);
           document.getElementById("slider-container").appendChild(slider);
-
-          const updateLabel = () => {
-            label.textContent = name + " = " + slider.value;
-          };
-
-          updateLabel();
-          slider.oninput = () => { updateLabel(); drawEverything(); };
+          document.getElementById("slider-container").appendChild(rangeSpan);
         } else {
           // Show existing slider
-          sliders[name].style.display = "";
-          sliders[name].previousSibling.style.display = "";  // show label
+          sliders[varName].style.display = "";
+          sliders[varName].previousSibling.style.display = "";  // show label
+          sliders[varName].nextSibling.style.display = "";  // show range selector
 
-          // Make sure that this slider will not be hidden as unused
-          removeFromArray(unusedSliders, sliders[name]);
+          // Mark this slider as "not unused", so it will not be hidden
+          removeFromArray(unusedSliders, sliders[varName]);
         }
 
-        return +sliders[name].value;
+        return +sliders[varName].value;
       }
 
       function parseTextInput(input) {
