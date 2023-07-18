@@ -1,13 +1,6 @@
 (function() {
   "use strict";
 
-  function removeFromArray(array, item) {
-    const i = array.indexOf(item);
-    if (i !== -1) {
-      array.splice(i, 1);
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
     /* eslint-disable indent */
     require([
@@ -15,43 +8,33 @@
       (GraphDrawer, mathParser, generateColor, DragAndDrop, downloadGraph) => {
     /* eslint-enable indent */
       const canvas = document.getElementById('graph-canvas');
+
       const drawer = new GraphDrawer(canvas);
       const drawCallbacks = [];
-
-      const sliders = {};  // keys are math variable names
-      let unusedSliders = [];  // gets clean up during drawing
 
       function drawEverything() {
         drawer.initDrawing();
 
-        unusedSliders = Object.values(sliders);
-        for (const cb of drawCallbacks) {
-          cb();
+        // Hide all sliders initially, will be shown as needed
+        for (const elem of document.querySelectorAll("#slider-container > *")) {
+          elem.style.display = "none";
         }
 
-        // Hide unnecessary sliders, but keep them around so we remember min, max and value
-        const usedSliders = Object.values(sliders).filter(s => !unusedSliders.includes(s));
-        for (const slider of usedSliders) {
-          slider.style.display = "";
-          slider.previousSibling.style.display = ""; // label
-          slider.nextSibling.style.display = ""; // range selector
-        }
-        for (const slider of unusedSliders) {
-          slider.style.display = "none";
-          slider.previousSibling.style.display = "none"; // label
-          slider.nextSibling.style.display = "none"; // range selector
+        for (const cb of drawCallbacks) {
+          cb();
         }
       }
 
       function getSliderValue(varName) {
-        if (sliders[varName] === undefined) {
+        let slider = document.getElementById(`slider-${varName}`);
+        if (!slider) {
           // Create new slider
-          const slider = document.createElement('input');
+          slider = document.createElement('input');
           slider.id = `slider-${varName}`;
           slider.type = 'range';
           slider.min = 0;
           slider.max = 1;
-          slider.value = 1;  // TODO: why doesn't 0.5 work here?
+          slider.value = 1;  // TODO: why doesn't 0.5 work?
           slider.step = 0.001;
 
           const label = document.createElement("label");
@@ -75,21 +58,17 @@
             input.oninput = syncAllTheThingsNicely;
           }
 
-          sliders[varName] = slider;
           document.getElementById("slider-container").appendChild(label);
           document.getElementById("slider-container").appendChild(slider);
           document.getElementById("slider-container").appendChild(rangeSpan);
-        } else {
-          // Show existing slider
-          sliders[varName].style.display = "";
-          sliders[varName].previousSibling.style.display = "";  // show label
-          sliders[varName].nextSibling.style.display = "";  // show range selector
-
-          // Mark this slider as "not unused", so it will not be hidden
-          removeFromArray(unusedSliders, sliders[varName]);
         }
 
-        return +sliders[varName].value;
+        // Show the slider
+        slider.style.display = "";
+        slider.previousSibling.style.display = "";  // show label
+        slider.nextSibling.style.display = "";  // show range selector
+
+        return +slider.value;
       }
 
       function parseTextInput(input) {
@@ -159,7 +138,7 @@
         drawEverything();
 
         removeButton.addEventListener('click', () => {
-          removeFromArray(drawCallbacks, drawCallback);
+          drawCallbacks.splice(drawCallbacks.indexOf(drawCallback), 1);
           settingsDiv.parentNode.removeChild(settingsDiv);
           drawEverything();
         });
