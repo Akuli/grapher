@@ -17,7 +17,7 @@ body {
 #slider-container > label {
     width: 5em;
     white-space: nowrap;
-    text-overflow: clip;  /* TODO: this doesn't actually clip the text :( */
+    overflow: hidden;
 }
 
 #slider-container > span {
