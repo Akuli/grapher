@@ -30,6 +30,8 @@ define([], function() {
     root: { nargs: 2, createJs: (x, n) =>
       // handle e.g. cuberoot (n=3) of negative
       `(${n} % 2 === 1 && ${x} < 0) ? -Math.pow(-${x}, 1/${n}) : Math.pow(${x}, 1/${n})` },
+    min: { nargs: 2, createJs: (x, y) => `Math.min(${x}, ${y})` },
+    max: { nargs: 2, createJs: (x, y) => `Math.max(${x}, ${y})` },
   };
 
   FUNCTIONS.cosec = FUNCTIONS.csc;
