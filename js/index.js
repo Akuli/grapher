@@ -164,12 +164,8 @@
       };
 
       canvas.addEventListener('wheel', event => {
-        // for some reason, firefox zooms slower than chromium
-        let delta = event.deltaY;
-        if (navigator.userAgent.toLowerCase().indexOf('firefox') !== -1) {
-          delta *= 20;
-        }
         const mousePos = drawer.screenPoint(event.offsetX, event.offsetY);
+        const delta = event.deltaY;
         drawer.zoom(mousePos, delta);
         drawEverything();
         event.preventDefault();
